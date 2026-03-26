@@ -1,0 +1,68 @@
+<div class="contenedor">
+  <h1>📦 Panel de Almacenes</h1>
+
+  <div class="tarjeta form-tarjeta">
+    <h2>{{ idEdicion ? '✏️ Editar Almacén' : '➕ Nuevo Almacén' }}</h2>
+    
+    <form #almacenForm="ngForm" (ngSubmit)="guardarAlmacen()">
+      
+      <div class="grupo-inputs">
+        <input type="text" placeholder="Nombre (Ej: Hub Logístico Norte)" name="nombre" [(ngModel)]="formulario.nombre" required>
+        <input type="text" placeholder="Dirección Completa (Ej: Calle Mayor 12)" name="direccion" [(ngModel)]="formulario.direccionCompleta" required>
+      </div>
+
+      <div class="grupo-inputs">
+        <input type="text" placeholder="Ciudad" name="ciudad" [(ngModel)]="formulario.ciudad" required>
+        
+        <div class="input-con-error">
+          <input type="text" placeholder="Código Postal (Solo números)" name="cp" 
+                 [(ngModel)]="formulario.cp" required pattern="^[0-9]+$" #cpInput="ngModel">
+          
+          <small class="texto-error" *ngIf="cpInput.errors?.['pattern'] && cpInput.touched">
+            ❌ El CP debe contener solo números.
+          </small>
+        </div>
+      </div>
+
+      <div class="grupo-inputs">
+        <input type="text" placeholder="Provincia" name="provincia" [(ngModel)]="formulario.provincia" required>
+        <input type="text" placeholder="País" name="pais" [(ngModel)]="formulario.pais" required>
+      </div>
+
+      <div class="botones-form">
+        <button type="submit" class="btn-crear" [disabled]="almacenForm.invalid" [class.btn-deshabilitado]="almacenForm.invalid">
+          {{ idEdicion ? 'Actualizar Almacén' : 'Guardar Almacén' }}
+        </button>
+        
+        <button type="button" class="btn-cancelar" *ngIf="idEdicion" (click)="resetearFormulario()">
+          Cancelar Edición
+        </button>
+      </div>
+
+    </form>
+  </div>
+  
+  <hr>
+
+  <div *ngIf="almacenes.length === 0" class="cargando">
+    <p>⏳ Cargando almacenes...</p>
+  </div>
+
+  <div class="grid-almacenes">
+    <div *ngFor="let almacen of almacenes" class="tarjeta">
+      
+      <div class="tarjeta-header">
+        <h2 style="margin: 0;">{{ almacen.nombre }}</h2>
+        <div>
+          <button class="btn-editar" (click)="cargarParaEdicion(almacen)" title="Editar Almacén">✏️</button>
+          <button class="btn-eliminar" (click)="eliminarAlmacen(almacen.id, almacen.nombre)" title="Eliminar Almacén">🗑️</button>
+        </div>
+      </div>
+
+      <p><strong>📍 Dirección:</strong> {{ almacen.direccionCompleta }}</p>
+      <p><strong>🏙️ Ciudad:</strong> {{ almacen.ciudad }}</p>
+      <small>ID Interno: {{ almacen.id }}</small>
+    </div>
+  </div>
+
+</div>

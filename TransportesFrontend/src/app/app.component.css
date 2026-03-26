@@ -1,0 +1,143 @@
+.contenedor {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.cargando {
+  padding: 20px;
+  background-color: #fff3cd;
+  color: #856404;
+  border-radius: 5px;
+  border: 1px solid #ffeeba;
+}
+
+.grid-almacenes {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.tarjeta {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px 20px;
+  background-color: #fcfcfc;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+}
+
+.tarjeta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.tarjeta h2 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+}
+
+.tarjeta p {
+  margin: 5px 0;
+  color: #555;
+}
+
+.tarjeta small {
+  display: block;
+  margin-top: 15px;
+  color: #aaa;
+  font-size: 0.75rem;
+}
+
+/* Estilos para el formulario */
+.form-tarjeta { background-color: #e9ecef; border-left: 5px solid #007bff; margin-bottom: 20px;}
+.grupo-inputs { display: flex; gap: 10px; margin-bottom: 10px; }
+input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit;}
+.btn-crear { background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;}
+.btn-crear:hover { background-color: #0056b3; }
+/* Apariencia del botón cuando faltan datos */
+.btn-deshabilitado {
+  background-color: #cccccc !important;
+  color: #666666 !important;
+  cursor: not-allowed !important;
+  opacity: 0.7;
+}
+
+/* Contenedor relativo para no romper el diseño al mostrar el error */
+.input-con-error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* El texto rojito de aviso */
+.texto-error {
+  color: #dc3545;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  font-weight: bold;
+}
+
+/* Un borde rojo suave si el input es tocado e inválido */
+input.ng-invalid.ng-touched {
+  border: 2px solid #ffb8b8;
+  outline: none;
+}
+/* Flexbox para poner el título a la izquierda y el botón a la derecha */
+.tarjeta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.tarjeta-header h2 {
+  margin: 0;
+}
+
+.btn-eliminar {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.btn-eliminar:hover {
+  background-color: #ffe0e0;
+}
+
+.botones-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.btn-cancelar {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-editar {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.btn-editar:hover {
+  background-color: #e0f0ff;
+}
