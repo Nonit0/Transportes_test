@@ -141,3 +141,52 @@ input.ng-invalid.ng-touched {
 .btn-editar:hover {
   background-color: #e0f0ff;
 }
+
+/* ==========================================
+   🛸 ESTILOS DEL MODAL FLOTANTE
+   ========================================== */
+
+/* 1. La capa oscura que tapa el fondo */
+.modal-overlay {
+  position: fixed; /* Esto lo hace flotar sobre todo */
+  top: 0; 
+  left: 0; 
+  width: 100vw; 
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6); /* Fondo negro semi-transparente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Asegura que nada se ponga por encima */
+  backdrop-filter: blur(3px); /* Efecto de desenfoque moderno */
+}
+
+/* 2. La caja blanca del formulario */
+.modal-content {
+  background-color: white;
+  padding: 25px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  animation: deslizarArriba 0.3s ease-out; /* Animación de entrada suave */
+}
+
+/* 3. Animación para que entre de abajo a arriba */
+@keyframes deslizarArriba {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* 4. Estilo del botón "➕ Nueva" por si no lo tenías */
+.btn-nueva-dir {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.btn-nueva-dir:hover { background-color: #218838; }
