@@ -8,8 +8,9 @@ namespace TransportesBackend.DTOs
         public string Nombre { get; set; } 
         
         [Required]
-        public string DireccionCompleta { get; set; } 
+        public string DireccionId { get; set; } 
 
+        /* Ya no hacen falta pues estos pertenecen a direccion no a almacen
         [Required]
         public string Ciudad { get; set; } 
 
@@ -21,5 +22,6 @@ namespace TransportesBackend.DTOs
 
         [Required]
         public string Pais { get; set; } 
+        */
     }
 }

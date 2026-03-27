@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using TransportesBackend.Models; // Tu namespace de modelos
+using TransportesBackend.Models; 
 using System.Linq;
 using TransportesBackend.DTOs;
 using System.Collections.Generic;
@@ -22,29 +22,33 @@ namespace TransportesBackend.Controllers
             _context = context;
         }
 
+        // =================== //
+        // GET: api/Almacenes  //
+        // =================== //
         [HttpGet]
-        // no necesita ser ni Task ni async
-        public async Task<IEnumerable<AlmacenDTO>> GetAlmacenes() 
+        public async Task<ActionResult<IEnumerable<AlmacenDTO>>> GetAlmacenes() 
         {
-            
+            //forma correcta de hacerlo pues es mas limpio
+            var almacenes = await _context.Almacen
+               .Where(a => a.DeletedAt == null)
+               .Include(a => a.Direccion) // incluye la direccion
+               //.thenInclude(a => a.Ciudad) // incluye la ciudad que proviene de direccion
+               // la cantidad de thenInclude se definen en el DbContext
+               .Select(a => new AlmacenDTO // lo que le enviamos al DTO
+               {
+                   Id = a.Id,
+                   Nombre = a.Nombre,
+                   DireccionCompleta = a.Direccion.Calle, // Dejamos esto como texto resumen para la tarjeta
+                   DireccionId = a.DireccionId // VITAL: Necesario para el <select> en Angular
+               })
+               .ToListAsync();
 
-                //forma correcta de hacerlo pues es mas fácil
-                return await _context.Almacen
-                   .Where(a => a.DeletedAt == null)
-                   .Include(a => a.Direccion)
-                   //.thenInclude(a => a.Ciudad)
-                   .Select(a => new AlmacenDTO
-                   {
-                       Id = a.Id,
-                       Nombre = a.Nombre,
-                       DireccionCompleta = a.Direccion.Calle,
-                       Ciudad = a.Direccion.Ciudad
-                   })
-                   .ToListAsync();
-
-            //return Ok(almacenes);
+            return Ok(almacenes);
         }
 
+        // ==================== //
+        // POST: api/Almacenes  //
+        // ==================== //
         [HttpPost]
         public async Task<ActionResult<AlmacenDTO>> CreateAlmacen([FromBody] CreateAlmacenDTO dto)
         {
@@ -54,6 +58,14 @@ namespace TransportesBackend.Controllers
                 return BadRequest(ModelState); // Devuelve errores de validación
             }
 
+            // 2. REGLA DE ARQUITECTURA: Verificamos que la dirección elegida en el desplegable de Angular realmente existe
+            var direccionExiste = await _context.Direccion.AnyAsync(d => d.Id == dto.DireccionId); // CORREGIDO: Era DireccionId, no DireccionC
+            if (!direccionExiste)
+            {
+                return BadRequest(new { mensaje = "La dirección seleccionada no existe en la base de datos." });
+            }
+            
+            /* Ya no necesitamos comprobar de esta manera si la direccion existe porque ahora si no existe se crea aparte
             // 2. Buscar si la dirección existe (Opcional: Crear dirección si no existe)
             // Por simplicidad, asumimos que la dirección ya existe en la tabla Direcciones
             var direccion = await _context.Direccion
@@ -61,32 +73,26 @@ namespace TransportesBackend.Controllers
 
             if (direccion == null)
             {
-                // Si no existe, la creamos (Opcional: Depende de tu lógica de negocio)
-                direccion = new Direccion
-                {
-                    Calle = dto.DireccionCompleta,
-                    Ciudad = dto.Ciudad,
-                    Cp = dto.Cp,
-                    Provincia = dto.Provincia,
-                    Pais = dto.Pais
-                };
+                direccion = new Direccion { ... };
                 _context.Direccion.Add(direccion);
                 await _context.SaveChangesAsync();
             }
+            */
 
             // 3. Crear el nuevo Almacén usando el DTO
             var nuevoAlmacen = new Almacen
             {
                 Nombre = dto.Nombre,
-                DireccionId = direccion.Id, // Asignamos la FK
-                DeletedAt = null // Por defecto no está borrado
+                DireccionId = dto.DireccionId, // CORREGIDO: Asignamos la FK del DTO directamente
+                /* no necesitamos poner porque ahora se pone por defecto
+                // DeletedAt = null // Por defecto no está borrado
+                */
             };
 
             _context.Almacen.Add(nuevoAlmacen);
             await _context.SaveChangesAsync();
 
             // 4. Devolver el objeto creado con su ID generado por la base de datos
-            // Usamos Select para devolverlo en formato DTO (limpio)
             var almacenCreado = await _context.Almacen
                 .Where(a => a.Id == nuevoAlmacen.Id)
                 .Include(a => a.Direccion)
@@ -95,10 +101,13 @@ namespace TransportesBackend.Controllers
                     Id = a.Id,
                     Nombre = a.Nombre,
                     DireccionCompleta = a.Direccion.Calle,
+                    DireccionId = a.DireccionId
+                    /* Ya no hacen falta pues estos pertenecen a direccion no a almacen
                     Ciudad = a.Direccion.Ciudad,
                     Cp = a.Direccion.Cp,
                     Provincia = a.Direccion.Provincia,
                     Pais = a.Direccion.Pais
+                    */
                 })
                 .FirstAsync();
 
@@ -106,33 +115,33 @@ namespace TransportesBackend.Controllers
             return CreatedAtAction(nameof(GetAlmacenes), new { id = almacenCreado.Id }, almacenCreado);
         }
 
+        // ========================== //
+        // DELETE: api/Almacenes/{id} //
+        // ========================== //
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAlmacen(string id)
         {
-            // 1. Buscamos el almacén por su ID
             var almacen = await _context.Almacen.FindAsync(id);
 
-            // 2. Si no existe (o ya está borrado), devolvemos 404 Not Found
             if (almacen == null || almacen.DeletedAt != null)
             {
                 return NotFound(new { mensaje = "El almacén no existe o ya fue eliminado." });
             }
 
-            // 3. SOFT DELETE: No usamos _context.Almacen.Remove()
-            // Simplemente le ponemos la fecha y hora actual UTC
+            // SOFT DELETE: No usamos _context.Almacen.Remove()
             almacen.DeletedAt = DateTime.UtcNow;
 
-            // 4. Guardamos los cambios (Entity Framework hará un UPDATE, no un DELETE)
             await _context.SaveChangesAsync();
-
-            // 5. Devolvemos 204 No Content (Estándar REST para borrados)
             return NoContent(); 
         }
 
+        // ======================== //
+        // PUT: api/Almacenes/{id}  //
+        // ======================== //
         [HttpPut("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status200OK)] 
+        [ProducesResponseType(StatusCodes.Status404NotFound)] 
+        [ProducesResponseType(StatusCodes.Status400BadRequest)] 
         public async Task<ActionResult<AlmacenDTO>> PutAlmacen(string id, [FromBody] UpdateAlmacenDTO dto)
         {
             // 1. Validar DTO
@@ -140,42 +149,44 @@ namespace TransportesBackend.Controllers
 
             // 2. Buscar la entidad existente (filtrando borrados lógicos)
             var entidad = await _context.Almacen
-                // .Include(e => e.<TablaRelacionada>) // Descomentar si vas a actualizar relaciones
                 .FirstOrDefaultAsync(e => e.Id == id && e.DeletedAt == null);
 
+            // 3. Si no existe, devolvemos 404
             if (entidad == null)
             {
                 return NotFound(new { mensaje = "El registro no existe o ha sido eliminado." });
             }
 
-            // 3. Mapear los nuevos valores del DTO a la Entidad
+            // 4. Mapear los nuevos valores del DTO a la Entidad
             entidad.Nombre = dto.Nombre;
-            entidad.Direccion.Calle = dto.DireccionCompleta;
+            entidad.DireccionId = dto.DireccionId; // AQUI ESTÁ LA MAGIA: Solo cambiamos el enlace
+
+            /* Ya no hacen falta pues estos pertenecen a direccion no a almacen
+            entidad.Direccion.Calle = dto.DireccionCompleta; // BORRADO PARA NO MUTAR LA DIRECCIÓN
             entidad.Direccion.Ciudad = dto.Ciudad;
             entidad.Direccion.Cp = dto.Cp;
             entidad.Direccion.Provincia = dto.Provincia;
             entidad.Direccion.Pais = dto.Pais;
-            
-            // Si hay entidades relacionadas (Ej: Dirección), actualízalas aquí.
-            // entidad.Relacion.<Campo> = dto.<DatoRelacionado>;
+            */
 
-            // 4. Guardar cambios (Entity Framework detecta automáticamente qué columnas cambiaron)
+            // 5. Guardar cambios
             await _context.SaveChangesAsync();
 
-            // 5. Mapear al DTO de salida para devolverlo al Frontend
-            var entidadActualizadaDTO = new AlmacenDTO
-            {
-                Id = entidad.Id,
-                Nombre = entidad.Nombre,
-                DireccionCompleta = entidad.Direccion.Calle,
-                Ciudad = entidad.Direccion.Ciudad,
-                Cp = entidad.Direccion.Cp,
-                Provincia = entidad.Direccion.Provincia,
-                Pais = entidad.Direccion.Pais
-            };
+            // 6. Para devolver el objeto actualizado completo al frontend, volvemos a consultar a la BD
+            var almacenActualizado = await _context.Almacen
+                .Where(a => a.Id == entidad.Id)
+                .Include(a => a.Direccion)
+                .Select(a => new AlmacenDTO
+                {
+                    Id = a.Id,
+                    Nombre = a.Nombre,
+                    DireccionCompleta = a.Direccion.Calle,
+                    DireccionId = a.DireccionId
+                })
+                .FirstAsync();
 
-            // 6. Devolver 200 OK con el objeto fresco
-            return Ok(entidadActualizadaDTO);
+            // 7. Devolver 200 OK con el objeto fresco
+            return Ok(almacenActualizado);
         }
     }
 }

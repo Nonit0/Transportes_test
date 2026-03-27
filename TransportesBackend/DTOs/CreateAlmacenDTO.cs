@@ -11,8 +11,9 @@ namespace TransportesBackend.DTOs
         public string Nombre { get; set; } // Ej: Nombre
         
         [Required]
-        public string DireccionCompleta { get; set; } // Ej: DireccionId
+        public string DireccionId { get; set; } // Ej: DireccionId
         
+        /* Ya no hacen falta pues estos pertenecen a direccion no a almacen
         [Required]
         public string Ciudad { get; set; } // Ej: Ciudad
 
@@ -27,5 +28,6 @@ namespace TransportesBackend.DTOs
 
         
         // ... Solo los campos necesarios para CREAR el registro ...
+        */
     }
 }

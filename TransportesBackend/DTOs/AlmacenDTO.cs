@@ -10,9 +10,12 @@ namespace TransportesBackend.DTOs
         
         // Aplanamos la relación con la tabla 'Direccion'
         public string DireccionCompleta { get; set; }
+        public string DireccionId { get; set; } 
+        /* Ya no hacen falta pues estos pertenecen a direccion no a almacen
         public string Ciudad { get; set; } 
         public string Cp { get; set; } 
         public string Provincia { get; set; } 
         public string Pais { get; set; } 
+        */
     }
 }
