@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { AlmacenDTO, CreateAlmacenDTO, DireccionDTO } from '../almacen.dto';
+import { AlmacenDTO, CreateAlmacenDTO, DireccionDTO } from './almacen.dto';
 
 @Component({
   selector: 'app-almacenes',
@@ -52,7 +52,7 @@ export class AlmacenesComponent implements OnInit {
 
   // POST / PUT: Crea o Actualiza un almacén
   guardarAlmacen() {
-    console.log('📦 Datos a enviar al servidor:', this.formulario); // 👈 AÑADE ESTO
+    // debugg console.log('📦 Datos a enviar al servidor:', this.formulario);
     if (this.idEdicion) {
       this.http.put<AlmacenDTO>(`https://localhost:5011/api/Almacenes/${this.idEdicion}`, this.formulario)
         .subscribe({

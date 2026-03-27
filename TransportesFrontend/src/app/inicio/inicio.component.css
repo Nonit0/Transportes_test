@@ -1,0 +1,53 @@
+.contenedor-inicio {
+  text-align: center;
+  padding: 4rem 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.contenedor-inicio h1 {
+  font-size: 2.5rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.contenedor-inicio p {
+  font-size: 1.2rem;
+  color: #7f8c8d;
+  margin-bottom: 3rem;
+}
+
+.grid-accesos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.tarjeta-acceso {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #ecf0f1;
+}
+
+.tarjeta-acceso:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+  border-color: #3498db;
+}
+
+.tarjeta-acceso h2 {
+  color: #3498db;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.tarjeta-acceso p {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 0;
+}
