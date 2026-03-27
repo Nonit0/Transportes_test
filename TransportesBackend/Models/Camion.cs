@@ -31,7 +31,7 @@ namespace TransportesBackend.Models
         public decimal CapacidadVolumen { get; set; }
         [Required]
         [Column("activo")]
-        public bool? Activo { get; set; }
+        public bool Activo { get; set; }
 
         [InverseProperty("Camion")]
         public virtual ICollection<Carga> Carga { get; set; }
