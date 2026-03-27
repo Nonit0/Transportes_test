@@ -34,14 +34,26 @@ namespace TransportesBackend.Controllers
                 return BadRequest(new { mensaje = "Ya existe un producto con este nombre." });
 
             var producto = new Producto {
-                Nombre = dto.Nombre, Descripcion = dto.Descripcion,
-                PesoUnitario = dto.PesoUnitario, VolumenUnitario = dto.VolumenUnitario
+                Nombre = dto.Nombre,
+                Descripcion = dto.Descripcion,
+                PesoUnitario = dto.PesoUnitario,
+                VolumenUnitario = dto.VolumenUnitario
             };
 
             _context.Producto.Add(producto);
             await _context.SaveChangesAsync();
 
-            return Ok(new ProductoDTO { Id = producto.Id, Nombre = producto.Nombre, Descripcion = producto.Descripcion, PesoUnitario = producto.PesoUnitario, VolumenUnitario = producto.VolumenUnitario });
+            // 4. EL TRUCO MAESTRO: Vamos a la BBDD a recuperar el UUID que acaba de generar.
+            // Como tu campo 'Nombre' es UNIQUE, esta búsqueda es 100% segura y precisa.
+            var productoGenerado = await _context.Producto.FirstAsync(p => p.Nombre == dto.Nombre);
+
+            return Ok(new ProductoDTO { 
+                Id = productoGenerado.Id, 
+                Nombre = productoGenerado.Nombre, 
+                Descripcion = productoGenerado.Descripcion, 
+                PesoUnitario = productoGenerado.PesoUnitario, 
+                VolumenUnitario = productoGenerado.VolumenUnitario 
+            });
         }
 
         [HttpPut("{id}")]
@@ -68,9 +80,16 @@ namespace TransportesBackend.Controllers
             var producto = await _context.Producto.FindAsync(id);
             if (producto == null) return NotFound();
 
-            _context.Producto.Remove(producto);
-            await _context.SaveChangesAsync();
-            return NoContent();
+            try
+            {
+                _context.Producto.Remove(producto);
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (DbUpdateException)
+            {
+                return BadRequest(new { mensaje = "No se puede eliminar este producto porque ya está incluido en un pedido histórico." });
+            }
         }
     }
 }
