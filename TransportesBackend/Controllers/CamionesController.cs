@@ -3,9 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using TransportesBackend.Models; 
 using System.Linq;
-using TransportesBackend.DTOs;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
 
 namespace TransportesBackend.Controllers
 {
@@ -24,19 +22,13 @@ namespace TransportesBackend.Controllers
         // GET: api/Camiones   //
         // =================== //
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CamionDTO>>> GetCamiones()
+        public async Task<ActionResult<IEnumerable<Camion>>> GetCamiones()
         {
             // Traemos todos los camiones ordenados para que los activos salgan primero
+            // IgnoreQueryFilters permite que se devuelvan los borrados logicamente (inactivos)
             var camiones = await _context.Camion
+                .IgnoreQueryFilters()
                 .OrderByDescending(c => c.Activo) 
-                .Select(c => new CamionDTO
-                {
-                    Id = c.Id,
-                    Matricula = c.Matricula,
-                    CapacidadPeso = c.CapacidadPeso,
-                    CapacidadVolumen = c.CapacidadVolumen,
-                    Activo = c.Activo
-                })
                 .ToListAsync();
 
             return Ok(camiones);
@@ -46,47 +38,28 @@ namespace TransportesBackend.Controllers
         // POST: api/Camiones   //
         // ==================== //
         [HttpPost]
-        public async Task<ActionResult<CamionDTO>> CreateCamion([FromBody] CreateCamionDTO dto)
+        public async Task<ActionResult<Camion>> CreateCamion([FromBody] Camion camion)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             // 1. Validar que la matrícula no exista ya (Evita error 500 de SQL por el UNIQUE)
-            var matriculaExiste = await _context.Camion.AnyAsync(c => c.Matricula == dto.Matricula);
+            var matriculaExiste = await _context.Camion.AnyAsync(c => c.Matricula == camion.Matricula);
             if (matriculaExiste)
             {
                 return BadRequest(new { mensaje = "Ya existe un camión registrado con esta matrícula." });
             }
 
-            // 2. Mapear DTO a Entidad
-            var nuevoCamion = new Camion
-            {
-                Matricula = dto.Matricula,
-                CapacidadPeso = dto.CapacidadPeso,
-                CapacidadVolumen = dto.CapacidadVolumen,
-                Activo = dto.Activo
-            };
-
-            _context.Camion.Add(nuevoCamion);
+            _context.Camion.Add(camion);
             await _context.SaveChangesAsync();
 
-            // 3. Devolver DTO
-            var camionCreado = new CamionDTO
-            {
-                Id = nuevoCamion.Id,
-                Matricula = nuevoCamion.Matricula,
-                CapacidadPeso = nuevoCamion.CapacidadPeso,
-                CapacidadVolumen = nuevoCamion.CapacidadVolumen,
-                Activo = nuevoCamion.Activo
-            };
-
-            return CreatedAtAction(nameof(GetCamiones), new { id = camionCreado.Id }, camionCreado);
+            return CreatedAtAction(nameof(GetCamiones), new { id = camion.Id }, camion);
         }
 
         // ======================== //
         // PUT: api/Camiones/{id}   //
         // ======================== //
         [HttpPut("{id}")]
-        public async Task<ActionResult<CamionDTO>> PutCamion(string id, [FromBody] UpdateCamionDTO dto)
+        public async Task<ActionResult<Camion>> PutCamion(string id, [FromBody] Camion camionDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -95,7 +68,7 @@ namespace TransportesBackend.Controllers
 
             // Comprobar que no estemos intentando poner una matrícula que ya tiene otro camión
             var matriculaDuplicada = await _context.Camion
-                .AnyAsync(c => c.Matricula == dto.Matricula && c.Id != id);
+                .AnyAsync(c => c.Matricula == camionDto.Matricula && c.Id != id);
                 
             if (matriculaDuplicada)
             {
@@ -103,23 +76,14 @@ namespace TransportesBackend.Controllers
             }
 
             // Actualizar datos
-            camion.Matricula = dto.Matricula;
-            camion.CapacidadPeso = dto.CapacidadPeso;
-            camion.CapacidadVolumen = dto.CapacidadVolumen;
-            camion.Activo = dto.Activo;
+            camion.Matricula = camionDto.Matricula;
+            camion.CapacidadPeso = camionDto.CapacidadPeso;
+            camion.CapacidadVolumen = camionDto.CapacidadVolumen;
+            camion.Activo = camionDto.Activo;
 
             await _context.SaveChangesAsync();
 
-            var camionActualizadoDTO = new CamionDTO
-            {
-                Id = camion.Id,
-                Matricula = camion.Matricula,
-                CapacidadPeso = camion.CapacidadPeso,
-                CapacidadVolumen = camion.CapacidadVolumen,
-                Activo = camion.Activo
-            };
-
-            return Ok(camionActualizadoDTO);
+            return Ok(camion);
         }
 
         // ========================== //
@@ -131,9 +95,10 @@ namespace TransportesBackend.Controllers
             var camion = await _context.Camion.FindAsync(id);
             if (camion == null) return NotFound();
 
-            // SOFT DELETE (Baja lógica): En lugar de destruirlo, lo marcamos como inactivo.
-            // Así preservamos el historial en la tabla 'Carga'
+            // SOFT DELETE: Marcamos la baja lógica para mantener historial.
             camion.Activo = false;
+            camion.DeletedAt = System.DateTime.UtcNow;
+            _context.Camion.Update(camion);
             await _context.SaveChangesAsync();
 
             return NoContent();

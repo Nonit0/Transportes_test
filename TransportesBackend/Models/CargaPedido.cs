@@ -22,10 +22,10 @@ namespace TransportesBackend.Models
         public string PedidoId { get; set; }
 
         [ForeignKey(nameof(CargaId))]
-        [InverseProperty("CargaPedido")]
+        [InverseProperty("CargaPedidos")]
         public virtual Carga Carga { get; set; }
         [ForeignKey(nameof(PedidoId))]
-        [InverseProperty("CargaPedido")]
+        [InverseProperty("CargaPedidos")]
         public virtual Pedido Pedido { get; set; }
     }
 }

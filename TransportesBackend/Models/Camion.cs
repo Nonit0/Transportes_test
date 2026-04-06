@@ -9,12 +9,13 @@ using Microsoft.EntityFrameworkCore;
 namespace TransportesBackend.Models
 {
     [Table("camion")]
+    [Index(nameof(DeletedAt), nameof(Matricula), Name = "idx_camion_activo")]
     [Index(nameof(Matricula), Name = "matricula", IsUnique = true)]
     public partial class Camion
     {
         public Camion()
         {
-            Carga = new HashSet<Carga>();
+            Cargas = new HashSet<Carga>();
         }
 
         [Key]
@@ -31,9 +32,11 @@ namespace TransportesBackend.Models
         public decimal CapacidadVolumen { get; set; }
         [Required]
         [Column("activo")]
-        public bool Activo { get; set; }
+        public bool? Activo { get; set; }
+        [Column("deleted_at", TypeName = "datetime")]
+        public DateTime? DeletedAt { get; set; }
 
-        [InverseProperty("Camion")]
-        public virtual ICollection<Carga> Carga { get; set; }
+        [InverseProperty(nameof(Carga.Camion))]
+        public virtual ICollection<Carga> Cargas { get; set; }
     }
 }

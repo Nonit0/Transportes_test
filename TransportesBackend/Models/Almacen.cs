@@ -16,8 +16,8 @@ namespace TransportesBackend.Models
     {
         public Almacen()
         {
-            CargaDestinoAlmacen = new HashSet<Carga>();
-            CargaOrigenAlmacen = new HashSet<Carga>();
+            CargaDestinoAlmacens = new HashSet<Carga>();
+            CargaOrigenAlmacens = new HashSet<Carga>();
         }
 
         [Key]
@@ -36,11 +36,11 @@ namespace TransportesBackend.Models
         public DateTime? DeletedAt { get; set; }
 
         [ForeignKey(nameof(DireccionId))]
-        [InverseProperty("Almacen")]
+        [InverseProperty("Almacens")]
         public virtual Direccion Direccion { get; set; }
         [InverseProperty(nameof(Carga.DestinoAlmacen))]
-        public virtual ICollection<Carga> CargaDestinoAlmacen { get; set; }
+        public virtual ICollection<Carga> CargaDestinoAlmacens { get; set; }
         [InverseProperty(nameof(Carga.OrigenAlmacen))]
-        public virtual ICollection<Carga> CargaOrigenAlmacen { get; set; }
+        public virtual ICollection<Carga> CargaOrigenAlmacens { get; set; }
     }
 }

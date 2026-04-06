@@ -10,12 +10,13 @@ namespace TransportesBackend.Models
 {
     [Table("cliente")]
     [Index(nameof(DireccionId), Name = "fk_cliente_dir")]
+    [Index(nameof(DeletedAt), nameof(Nombre), Name = "idx_cliente_activo")]
     public partial class Cliente
     {
         public Cliente()
         {
-            Carga = new HashSet<Carga>();
-            Pedido = new HashSet<Pedido>();
+            Cargas = new HashSet<Carga>();
+            Pedidos = new HashSet<Pedido>();
         }
 
         [Key]
@@ -36,13 +37,15 @@ namespace TransportesBackend.Models
         [Column("email")]
         [StringLength(150)]
         public string Email { get; set; }
+        [Column("deleted_at", TypeName = "datetime")]
+        public DateTime? DeletedAt { get; set; }
 
         [ForeignKey(nameof(DireccionId))]
-        [InverseProperty("Cliente")]
+        [InverseProperty("Clientes")]
         public virtual Direccion Direccion { get; set; }
-        [InverseProperty("DestinoCliente")]
-        public virtual ICollection<Carga> Carga { get; set; }
-        [InverseProperty("Cliente")]
-        public virtual ICollection<Pedido> Pedido { get; set; }
+        [InverseProperty(nameof(Carga.DestinoCliente))]
+        public virtual ICollection<Carga> Cargas { get; set; }
+        [InverseProperty(nameof(Pedido.Cliente))]
+        public virtual ICollection<Pedido> Pedidos { get; set; }
     }
 }

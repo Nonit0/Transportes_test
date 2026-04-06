@@ -33,12 +33,14 @@ namespace TransportesBackend.Models
         public string Estado { get; set; }
         [Column("observaciones", TypeName = "text")]
         public string Observaciones { get; set; }
+        [Column("deleted_at", TypeName = "datetime")]
+        public DateTime? DeletedAt { get; set; }
 
         [ForeignKey(nameof(CargaId))]
-        [InverseProperty("Entrega")]
+        [InverseProperty("Entregas")]
         public virtual Carga Carga { get; set; }
         [ForeignKey(nameof(PedidoId))]
-        [InverseProperty("Entrega")]
+        [InverseProperty("Entregas")]
         public virtual Pedido Pedido { get; set; }
     }
 }

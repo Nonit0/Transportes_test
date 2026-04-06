@@ -36,7 +36,10 @@ namespace TransportesBackend
             services.AddDbContext<TransportesDbContext>(options =>
                 options.UseMySql(mySqlConnectionStr, ServerVersion.AutoDetect(mySqlConnectionStr)));
 
-            services.AddControllers();            
+            services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+            });
 
             // Añadimos la política de CORS para permitir a Angular (puerto 4200)
                 services.AddCors(options =>

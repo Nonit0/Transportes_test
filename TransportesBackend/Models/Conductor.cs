@@ -10,11 +10,12 @@ namespace TransportesBackend.Models
 {
     [Table("conductor")]
     [Index(nameof(Dni), Name = "dni", IsUnique = true)]
+    [Index(nameof(DeletedAt), nameof(Dni), Name = "idx_conductor_activo")]
     public partial class Conductor
     {
         public Conductor()
         {
-            Carga = new HashSet<Carga>();
+            Cargas = new HashSet<Carga>();
         }
 
         [Key]
@@ -36,8 +37,10 @@ namespace TransportesBackend.Models
         [Column("telefono")]
         [StringLength(20)]
         public string Telefono { get; set; }
+        [Column("deleted_at", TypeName = "datetime")]
+        public DateTime? DeletedAt { get; set; }
 
-        [InverseProperty("Conductor")]
-        public virtual ICollection<Carga> Carga { get; set; }
+        [InverseProperty(nameof(Carga.Conductor))]
+        public virtual ICollection<Carga> Cargas { get; set; }
     }
 }

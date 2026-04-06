@@ -18,8 +18,8 @@ namespace TransportesBackend.Models
     {
         public Carga()
         {
-            CargaPedido = new HashSet<CargaPedido>();
-            Entrega = new HashSet<Entrega>();
+            CargaPedidos = new HashSet<CargaPedido>();
+            Entregas = new HashSet<Entrega>();
         }
 
         [Key]
@@ -56,25 +56,27 @@ namespace TransportesBackend.Models
         public DateTime FechaSalida { get; set; }
         [Column("fecha_llegada_estimada", TypeName = "datetime")]
         public DateTime? FechaLlegadaEstimada { get; set; }
+        [Column("deleted_at", TypeName = "datetime")]
+        public DateTime? DeletedAt { get; set; }
 
         [ForeignKey(nameof(CamionId))]
-        [InverseProperty("Carga")]
+        [InverseProperty("Cargas")]
         public virtual Camion Camion { get; set; }
         [ForeignKey(nameof(ConductorId))]
-        [InverseProperty("Carga")]
+        [InverseProperty("Cargas")]
         public virtual Conductor Conductor { get; set; }
         [ForeignKey(nameof(DestinoAlmacenId))]
-        [InverseProperty(nameof(Almacen.CargaDestinoAlmacen))]
+        [InverseProperty(nameof(Almacen.CargaDestinoAlmacens))]
         public virtual Almacen DestinoAlmacen { get; set; }
         [ForeignKey(nameof(DestinoClienteId))]
-        [InverseProperty(nameof(Cliente.Carga))]
+        [InverseProperty(nameof(Cliente.Cargas))]
         public virtual Cliente DestinoCliente { get; set; }
         [ForeignKey(nameof(OrigenAlmacenId))]
-        [InverseProperty(nameof(Almacen.CargaOrigenAlmacen))]
+        [InverseProperty(nameof(Almacen.CargaOrigenAlmacens))]
         public virtual Almacen OrigenAlmacen { get; set; }
-        [InverseProperty("Carga")]
-        public virtual ICollection<CargaPedido> CargaPedido { get; set; }
-        [InverseProperty("Carga")]
-        public virtual ICollection<Entrega> Entrega { get; set; }
+        [InverseProperty(nameof(CargaPedido.Carga))]
+        public virtual ICollection<CargaPedido> CargaPedidos { get; set; }
+        [InverseProperty(nameof(Entrega.Carga))]
+        public virtual ICollection<Entrega> Entregas { get; set; }
     }
 }

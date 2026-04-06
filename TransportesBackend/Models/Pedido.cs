@@ -14,9 +14,9 @@ namespace TransportesBackend.Models
     {
         public Pedido()
         {
-            CargaPedido = new HashSet<CargaPedido>();
-            Entrega = new HashSet<Entrega>();
-            PedidoDetalle = new HashSet<PedidoDetalle>();
+            CargaPedidos = new HashSet<CargaPedido>();
+            Entregas = new HashSet<Entrega>();
+            PedidoDetalles = new HashSet<PedidoDetalle>();
         }
 
         [Key]
@@ -33,15 +33,17 @@ namespace TransportesBackend.Models
         [Column("estado")]
         [StringLength(30)]
         public string Estado { get; set; }
+        [Column("deleted_at", TypeName = "datetime")]
+        public DateTime? DeletedAt { get; set; }
 
         [ForeignKey(nameof(ClienteId))]
-        [InverseProperty("Pedido")]
+        [InverseProperty("Pedidos")]
         public virtual Cliente Cliente { get; set; }
-        [InverseProperty("Pedido")]
-        public virtual ICollection<CargaPedido> CargaPedido { get; set; }
-        [InverseProperty("Pedido")]
-        public virtual ICollection<Entrega> Entrega { get; set; }
-        [InverseProperty("Pedido")]
-        public virtual ICollection<PedidoDetalle> PedidoDetalle { get; set; }
+        [InverseProperty(nameof(CargaPedido.Pedido))]
+        public virtual ICollection<CargaPedido> CargaPedidos { get; set; }
+        [InverseProperty(nameof(Entrega.Pedido))]
+        public virtual ICollection<Entrega> Entregas { get; set; }
+        [InverseProperty(nameof(PedidoDetalle.Pedido))]
+        public virtual ICollection<PedidoDetalle> PedidoDetalles { get; set; }
     }
 }

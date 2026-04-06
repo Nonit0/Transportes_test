@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using TransportesBackend.Models;
 using System.Linq;
-using TransportesBackend.DTOs;
 using System.Collections.Generic;
 
 namespace TransportesBackend.Controllers
@@ -17,58 +16,37 @@ namespace TransportesBackend.Controllers
         public ProductosController(TransportesDbContext context) { _context = context; }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductoDTO>>> GetProductos()
+        public async Task<ActionResult<IEnumerable<Producto>>> GetProductos()
         {
-            var productos = await _context.Producto
-                .Select(p => new ProductoDTO {
-                    Id = p.Id, Nombre = p.Nombre, Descripcion = p.Descripcion,
-                    PesoUnitario = p.PesoUnitario, VolumenUnitario = p.VolumenUnitario
-                }).ToListAsync();
+            var productos = await _context.Producto.ToListAsync();
             return Ok(productos);
         }
 
         [HttpPost]
-        public async Task<ActionResult<ProductoDTO>> PostProducto([FromBody] CreateProductoDTO dto)
+        public async Task<ActionResult<Producto>> PostProducto([FromBody] Producto producto)
         {
-            if (await _context.Producto.AnyAsync(p => p.Nombre == dto.Nombre))
+            if (await _context.Producto.AnyAsync(p => p.Nombre == producto.Nombre))
                 return BadRequest(new { mensaje = "Ya existe un producto con este nombre." });
-
-            var producto = new Producto {
-                Nombre = dto.Nombre,
-                Descripcion = dto.Descripcion,
-                PesoUnitario = dto.PesoUnitario,
-                VolumenUnitario = dto.VolumenUnitario
-            };
 
             _context.Producto.Add(producto);
             await _context.SaveChangesAsync();
 
-            // 4. EL TRUCO MAESTRO: Vamos a la BBDD a recuperar el UUID que acaba de generar.
-            // Como tu campo 'Nombre' es UNIQUE, esta búsqueda es 100% segura y precisa.
-            var productoGenerado = await _context.Producto.FirstAsync(p => p.Nombre == dto.Nombre);
-
-            return Ok(new ProductoDTO { 
-                Id = productoGenerado.Id, 
-                Nombre = productoGenerado.Nombre, 
-                Descripcion = productoGenerado.Descripcion, 
-                PesoUnitario = productoGenerado.PesoUnitario, 
-                VolumenUnitario = productoGenerado.VolumenUnitario 
-            });
+            return Ok(producto);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProducto(string id, [FromBody] UpdateProductoDTO dto)
+        public async Task<IActionResult> PutProducto(string id, [FromBody] Producto productoActualizado)
         {
             var producto = await _context.Producto.FindAsync(id);
             if (producto == null) return NotFound();
 
-            if (await _context.Producto.AnyAsync(p => p.Nombre == dto.Nombre && p.Id != id))
+            if (await _context.Producto.AnyAsync(p => p.Nombre == productoActualizado.Nombre && p.Id != id))
                 return BadRequest(new { mensaje = "Otro producto ya usa este nombre." });
 
-            producto.Nombre = dto.Nombre;
-            producto.Descripcion = dto.Descripcion;
-            producto.PesoUnitario = dto.PesoUnitario;
-            producto.VolumenUnitario = dto.VolumenUnitario;
+            producto.Nombre = productoActualizado.Nombre;
+            producto.Descripcion = productoActualizado.Descripcion;
+            producto.PesoUnitario = productoActualizado.PesoUnitario;
+            producto.VolumenUnitario = productoActualizado.VolumenUnitario;
 
             await _context.SaveChangesAsync();
             return NoContent();
@@ -80,16 +58,10 @@ namespace TransportesBackend.Controllers
             var producto = await _context.Producto.FindAsync(id);
             if (producto == null) return NotFound();
 
-            try
-            {
-                _context.Producto.Remove(producto);
-                await _context.SaveChangesAsync();
-                return NoContent();
-            }
-            catch (DbUpdateException)
-            {
-                return BadRequest(new { mensaje = "No se puede eliminar este producto porque ya está incluido en un pedido histórico." });
-            }
+            producto.DeletedAt = System.DateTime.UtcNow;
+            _context.Producto.Update(producto);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
     }
 }

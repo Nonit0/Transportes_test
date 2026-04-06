@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using TransportesBackend.Models;
 using System.Linq;
-using TransportesBackend.DTOs;
 using System.Collections.Generic;
 
 namespace TransportesBackend.Controllers
@@ -17,44 +16,37 @@ namespace TransportesBackend.Controllers
         public ConductoresController(TransportesDbContext context) { _context = context; }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ConductorDTO>>> GetConductores()
+        public async Task<ActionResult<IEnumerable<Conductor>>> GetConductores()
         {
-            var conductores = await _context.Conductor
-                .Select(c => new ConductorDTO {
-                    Id = c.Id, Dni = c.Dni, Nombre = c.Nombre, Apellidos = c.Apellidos, Telefono = c.Telefono
-                }).ToListAsync();
+            var conductores = await _context.Conductor.ToListAsync();
             return Ok(conductores);
         }
 
         [HttpPost]
-        public async Task<ActionResult<ConductorDTO>> PostConductor([FromBody] CreateConductorDTO dto)
+        public async Task<ActionResult<Conductor>> PostConductor([FromBody] Conductor conductor)
         {
-            if (await _context.Conductor.AnyAsync(c => c.Dni == dto.Dni))
+            if (await _context.Conductor.AnyAsync(c => c.Dni == conductor.Dni))
                 return BadRequest(new { mensaje = "Ya existe un conductor con este DNI." });
-
-            var conductor = new Conductor {
-                Dni = dto.Dni, Nombre = dto.Nombre, Apellidos = dto.Apellidos, Telefono = dto.Telefono
-            };
 
             _context.Conductor.Add(conductor);
             await _context.SaveChangesAsync();
 
-            return Ok(new ConductorDTO { Id = conductor.Id, Dni = conductor.Dni, Nombre = conductor.Nombre, Apellidos = conductor.Apellidos, Telefono = conductor.Telefono });
+            return Ok(conductor);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutConductor(string id, [FromBody] UpdateConductorDTO dto)
+        public async Task<IActionResult> PutConductor(string id, [FromBody] Conductor conductorActualizado)
         {
             var conductor = await _context.Conductor.FindAsync(id);
             if (conductor == null) return NotFound();
 
-            if (await _context.Conductor.AnyAsync(c => c.Dni == dto.Dni && c.Id != id))
+            if (await _context.Conductor.AnyAsync(c => c.Dni == conductorActualizado.Dni && c.Id != id))
                 return BadRequest(new { mensaje = "Otro conductor ya tiene este DNI asignado." });
 
-            conductor.Dni = dto.Dni;
-            conductor.Nombre = dto.Nombre;
-            conductor.Apellidos = dto.Apellidos;
-            conductor.Telefono = dto.Telefono;
+            conductor.Dni = conductorActualizado.Dni;
+            conductor.Nombre = conductorActualizado.Nombre;
+            conductor.Apellidos = conductorActualizado.Apellidos;
+            conductor.Telefono = conductorActualizado.Telefono;
 
             await _context.SaveChangesAsync();
             return NoContent();
@@ -66,7 +58,8 @@ namespace TransportesBackend.Controllers
             var conductor = await _context.Conductor.FindAsync(id);
             if (conductor == null) return NotFound();
 
-            _context.Conductor.Remove(conductor);
+            conductor.DeletedAt = System.DateTime.UtcNow;
+            _context.Conductor.Update(conductor);
             await _context.SaveChangesAsync();
             return NoContent();
         }

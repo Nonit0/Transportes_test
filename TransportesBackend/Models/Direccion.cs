@@ -13,9 +13,9 @@ namespace TransportesBackend.Models
     {
         public Direccion()
         {
-            Almacen = new HashSet<Almacen>();
-            Cliente = new HashSet<Cliente>();
-            Fabrica = new HashSet<Fabrica>();
+            Almacens = new HashSet<Almacen>();
+            Clientes = new HashSet<Cliente>();
+            Fabricas = new HashSet<Fabrica>();
         }
 
         [Key]
@@ -42,12 +42,14 @@ namespace TransportesBackend.Models
         [Column("pais")]
         [StringLength(100)]
         public string Pais { get; set; }
+        [Column("deleted_at", TypeName = "datetime")]
+        public DateTime? DeletedAt { get; set; }
 
-        [InverseProperty("Direccion")]
-        public virtual ICollection<Almacen> Almacen { get; set; }
-        [InverseProperty("Direccion")]
-        public virtual ICollection<Cliente> Cliente { get; set; }
-        [InverseProperty("Direccion")]
-        public virtual ICollection<Fabrica> Fabrica { get; set; }
+        [InverseProperty(nameof(Almacen.Direccion))]
+        public virtual ICollection<Almacen> Almacens { get; set; }
+        [InverseProperty(nameof(Cliente.Direccion))]
+        public virtual ICollection<Cliente> Clientes { get; set; }
+        [InverseProperty(nameof(Fabrica.Direccion))]
+        public virtual ICollection<Fabrica> Fabricas { get; set; }
     }
 }

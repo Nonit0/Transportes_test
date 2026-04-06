@@ -9,12 +9,13 @@ using Microsoft.EntityFrameworkCore;
 namespace TransportesBackend.Models
 {
     [Table("producto")]
+    [Index(nameof(DeletedAt), nameof(Nombre), Name = "idx_producto_activo")]
     [Index(nameof(Nombre), Name = "nombre", IsUnique = true)]
     public partial class Producto
     {
         public Producto()
         {
-            PedidoDetalle = new HashSet<PedidoDetalle>();
+            PedidoDetalles = new HashSet<PedidoDetalle>();
         }
 
         [Key]
@@ -31,8 +32,10 @@ namespace TransportesBackend.Models
         public decimal PesoUnitario { get; set; }
         [Column("volumen_unitario")]
         public decimal VolumenUnitario { get; set; }
+        [Column("deleted_at", TypeName = "datetime")]
+        public DateTime? DeletedAt { get; set; }
 
-        [InverseProperty("Producto")]
-        public virtual ICollection<PedidoDetalle> PedidoDetalle { get; set; }
+        [InverseProperty(nameof(PedidoDetalle.Producto))]
+        public virtual ICollection<PedidoDetalle> PedidoDetalles { get; set; }
     }
 }

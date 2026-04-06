@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -30,6 +30,15 @@ namespace TransportesBackend.Models
         public virtual DbSet<PedidoDetalle> PedidoDetalle { get; set; }
         public virtual DbSet<Producto> Producto { get; set; }
 
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+                optionsBuilder.UseMySql("server=localhost;database=transportes_db;user=root", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.4.32-mariadb"));
+            }
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasCharSet("utf8mb4")
@@ -40,7 +49,7 @@ namespace TransportesBackend.Models
                 entity.Property(e => e.Id).HasDefaultValueSql("uuid()");
 
                 entity.HasOne(d => d.Direccion)
-                    .WithMany(p => p.Almacen)
+                    .WithMany(p => p.Almacens)
                     .HasForeignKey(d => d.DireccionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_alm_dir");
@@ -62,29 +71,29 @@ namespace TransportesBackend.Models
                 entity.Property(e => e.Id).HasDefaultValueSql("uuid()");
 
                 entity.HasOne(d => d.Camion)
-                    .WithMany(p => p.Carga)
+                    .WithMany(p => p.Cargas)
                     .HasForeignKey(d => d.CamionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_carga_cam");
 
                 entity.HasOne(d => d.Conductor)
-                    .WithMany(p => p.Carga)
+                    .WithMany(p => p.Cargas)
                     .HasForeignKey(d => d.ConductorId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_carga_cond");
 
                 entity.HasOne(d => d.DestinoAlmacen)
-                    .WithMany(p => p.CargaDestinoAlmacen)
+                    .WithMany(p => p.CargaDestinoAlmacens)
                     .HasForeignKey(d => d.DestinoAlmacenId)
                     .HasConstraintName("fk_carga_dest_alm");
 
                 entity.HasOne(d => d.DestinoCliente)
-                    .WithMany(p => p.Carga)
+                    .WithMany(p => p.Cargas)
                     .HasForeignKey(d => d.DestinoClienteId)
                     .HasConstraintName("fk_carga_dest_cli");
 
                 entity.HasOne(d => d.OrigenAlmacen)
-                    .WithMany(p => p.CargaOrigenAlmacen)
+                    .WithMany(p => p.CargaOrigenAlmacens)
                     .HasForeignKey(d => d.OrigenAlmacenId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_carga_origen");
@@ -97,12 +106,12 @@ namespace TransportesBackend.Models
                     .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
 
                 entity.HasOne(d => d.Carga)
-                    .WithMany(p => p.CargaPedido)
+                    .WithMany(p => p.CargaPedidos)
                     .HasForeignKey(d => d.CargaId)
                     .HasConstraintName("fk_cp_carga");
 
                 entity.HasOne(d => d.Pedido)
-                    .WithMany(p => p.CargaPedido)
+                    .WithMany(p => p.CargaPedidos)
                     .HasForeignKey(d => d.PedidoId)
                     .HasConstraintName("fk_cp_pedido");
             });
@@ -112,7 +121,7 @@ namespace TransportesBackend.Models
                 entity.Property(e => e.Id).HasDefaultValueSql("uuid()");
 
                 entity.HasOne(d => d.Direccion)
-                    .WithMany(p => p.Cliente)
+                    .WithMany(p => p.Clientes)
                     .HasForeignKey(d => d.DireccionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_cliente_dir");
@@ -137,13 +146,13 @@ namespace TransportesBackend.Models
                 entity.Property(e => e.Estado).HasDefaultValueSql("'Pendiente'");
 
                 entity.HasOne(d => d.Carga)
-                    .WithMany(p => p.Entrega)
+                    .WithMany(p => p.Entregas)
                     .HasForeignKey(d => d.CargaId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_ent_carga");
 
                 entity.HasOne(d => d.Pedido)
-                    .WithMany(p => p.Entrega)
+                    .WithMany(p => p.Entregas)
                     .HasForeignKey(d => d.PedidoId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_ent_pedido");
@@ -154,7 +163,7 @@ namespace TransportesBackend.Models
                 entity.Property(e => e.Id).HasDefaultValueSql("uuid()");
 
                 entity.HasOne(d => d.Direccion)
-                    .WithMany(p => p.Fabrica)
+                    .WithMany(p => p.Fabricas)
                     .HasForeignKey(d => d.DireccionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_fab_dir");
@@ -167,7 +176,7 @@ namespace TransportesBackend.Models
                 entity.Property(e => e.Estado).HasDefaultValueSql("'Pendiente'");
 
                 entity.HasOne(d => d.Cliente)
-                    .WithMany(p => p.Pedido)
+                    .WithMany(p => p.Pedidos)
                     .HasForeignKey(d => d.ClienteId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_ped_cliente");
@@ -178,12 +187,12 @@ namespace TransportesBackend.Models
                 entity.Property(e => e.Id).HasDefaultValueSql("uuid()");
 
                 entity.HasOne(d => d.Pedido)
-                    .WithMany(p => p.PedidoDetalle)
+                    .WithMany(p => p.PedidoDetalles)
                     .HasForeignKey(d => d.PedidoId)
                     .HasConstraintName("fk_pd_pedido");
 
                 entity.HasOne(d => d.Producto)
-                    .WithMany(p => p.PedidoDetalle)
+                    .WithMany(p => p.PedidoDetalles)
                     .HasForeignKey(d => d.ProductoId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_pd_producto");

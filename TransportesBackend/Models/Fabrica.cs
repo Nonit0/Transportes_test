@@ -25,9 +25,11 @@ namespace TransportesBackend.Models
         [Column("direccion_id")]
         [StringLength(36)]
         public string DireccionId { get; set; }
+        [Column("deleted_at", TypeName = "datetime")]
+        public DateTime? DeletedAt { get; set; }
 
         [ForeignKey(nameof(DireccionId))]
-        [InverseProperty("Fabrica")]
+        [InverseProperty("Fabricas")]
         public virtual Direccion Direccion { get; set; }
     }
 }
