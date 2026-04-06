@@ -1,0 +1,153 @@
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+export interface Cliente {
+  id: string;
+  nombre: string;
+  direccionId: string;
+  telefono: string;
+  email: string;
+  prefijo: string;
+  deletedAt: string | null;
+  direccion: any;
+}
+
+export interface DireccionCombo {
+  id: string;
+  textoMostrar: string;
+}
+
+@Component({
+  selector: 'app-clientes',
+  templateUrl: './clientes.component.html',
+  styleUrls: ['./clientes.component.css']
+})
+export class ClientesComponent implements OnInit {
+  clientes: Cliente[] = [];
+  direcciones: DireccionCombo[] = [];
+
+  formulario = { nombre: '', direccionId: '', telefono: '', email: '', prefijo: '+34' };
+
+  prefijos = [
+    { codigo: '+34', pais: '🇪🇸 +34' },
+    { codigo: '+44', pais: '🇬🇧 +44' },
+    { codigo: '+33', pais: '🇫🇷 +33' },
+    { codigo: '+49', pais: '🇩🇪 +49' },
+    { codigo: '+39', pais: '🇮🇹 +39' },
+    { codigo: '+351', pais: '🇵🇹 +351' },
+    { codigo: '+1', pais: '🇺🇸 +1' },
+    { codigo: '+52', pais: '🇲🇽 +52' },
+    { codigo: '+54', pais: '🇦🇷 +54' },
+    { codigo: '+57', pais: '🇨🇴 +57' }
+  ];
+
+  // Edición inline
+  idEdicion: string | null = null;
+  clienteEnEdicion: any = {};
+
+  // Modal de direcciones
+  mostrarModal = false;
+  nuevaDireccion = { calle: '', ciudad: '', cp: '', provincia: '', pais: '' };
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.cargarClientes();
+    this.cargarDirecciones();
+  }
+
+  cargarClientes() {
+    this.http.get<any>('https://localhost:5011/api/Clientes')
+      .subscribe({
+        next: (data) => this.clientes = data.$values ? data.$values : data,
+        error: (err) => console.error('Error al cargar clientes', err)
+      });
+  }
+
+  cargarDirecciones() {
+    this.http.get<any>('https://localhost:5011/api/Direcciones')
+      .subscribe({
+        next: (data) => this.direcciones = data.$values ? data.$values : data,
+        error: (err) => console.error('Error al cargar direcciones', err)
+      });
+  }
+
+  guardarCliente() {
+    if (this.idEdicion) {
+      this.http.put<any>(`https://localhost:5011/api/Clientes/${this.idEdicion}`, this.formulario)
+        .subscribe({
+          next: () => {
+            this.cargarClientes();
+            this.resetearFormulario();
+          },
+          error: (err) => {
+            const msg = err.error?.mensaje || 'Error al actualizar el cliente.';
+            alert('⚠️ ' + msg);
+          }
+        });
+    } else {
+      this.http.post<any>('https://localhost:5011/api/Clientes', this.formulario)
+        .subscribe({
+          next: () => {
+            this.cargarClientes();
+            this.resetearFormulario();
+          },
+          error: (err) => {
+            const msg = err.error?.mensaje || 'Error al crear el cliente.';
+            alert('⚠️ ' + msg);
+          }
+        });
+    }
+  }
+
+  eliminarCliente(id: string, nombre: string) {
+    if (confirm(`¿Eliminar definitivamente al cliente "${nombre}"?`)) {
+      this.http.delete(`https://localhost:5011/api/Clientes/${id}`)
+        .subscribe({
+          next: () => this.clientes = this.clientes.filter(c => c.id !== id),
+          error: () => alert('Hubo un problema al eliminar el cliente.')
+        });
+    }
+  }
+
+  cargarParaEdicion(cliente: Cliente) {
+    this.idEdicion = cliente.id;
+    this.formulario = {
+      nombre: cliente.nombre,
+      direccionId: cliente.direccionId,
+      telefono: cliente.telefono,
+      email: cliente.email,
+      prefijo: cliente.prefijo || '+34'
+    };
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  resetearFormulario() {
+    this.idEdicion = null;
+    this.formulario = { nombre: '', direccionId: '', telefono: '', email: '', prefijo: '+34' };
+  }
+
+  // ==========================================
+  // 🛸 MODAL DE DIRECCIONES
+  // ==========================================
+  abrirModal() {
+    this.mostrarModal = true;
+  }
+
+  cerrarModal() {
+    this.mostrarModal = false;
+    this.nuevaDireccion = { calle: '', ciudad: '', cp: '', provincia: '', pais: '' };
+  }
+
+  guardarDireccion() {
+    this.http.post<any>('https://localhost:5011/api/Direcciones', this.nuevaDireccion)
+      .subscribe({
+        next: (dirCreada) => {
+          this.direcciones.push(dirCreada);
+          this.formulario.direccionId = dirCreada.id;
+          this.cerrarModal();
+        },
+        error: () => alert('Hubo un problema al crear la nueva dirección.')
+      });
+  }
+}

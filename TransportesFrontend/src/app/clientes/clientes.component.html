@@ -1,0 +1,171 @@
+<div class="contenedor">
+  <h1>👤 Gestión de Clientes</h1>
+
+  <div class="tarjeta form-tarjeta">
+    <h2>{{ idEdicion ? "✏️ Editar Cliente" : "➕ Nuevo Cliente" }}</h2>
+
+    <form #clienteForm="ngForm" (ngSubmit)="guardarCliente()">
+      <div style="display: flex; flex-wrap: wrap; gap: 10px">
+        <div style="flex: 2; min-width: 200px">
+          <input
+            type="text"
+            placeholder="Nombre / Razón Social"
+            name="nombre"
+            [(ngModel)]="formulario.nombre"
+            required
+            style="width: 100%"
+          />
+        </div>
+
+        <div style="flex: 1; min-width: 220px">
+          <div style="display: flex">
+            <select
+              name="prefijo"
+              [(ngModel)]="formulario.prefijo"
+              style="width: 80px; padding: 0.75rem 0.4rem; border: 1px solid #ddd; border-right: none; border-radius: 6px 0 0 6px; font-size: 1rem; box-sizing: border-box"
+            >
+              <option *ngFor="let p of prefijos" [value]="p.codigo">{{ p.pais }}</option>
+            </select>
+            <input
+              type="tel"
+              placeholder="Teléfono"
+              name="telefono"
+              [(ngModel)]="formulario.telefono"
+              pattern="^[0-9]+$"
+              #telInput="ngModel"
+              style="flex: 1; border-radius: 0 6px 6px 0; min-width: 0"
+            />
+          </div>
+          <small *ngIf="telInput.invalid && telInput.touched" class="campo-error">
+            ⚠️ Solo se permiten números.
+          </small>
+        </div>
+
+        <div style="flex: 2; min-width: 200px">
+          <input
+            type="email"
+            placeholder="Email (Ej: info@empresa.com)"
+            name="email"
+            [(ngModel)]="formulario.email"
+            #emailInput="ngModel"
+            style="width: 100%"
+          />
+          <small *ngIf="emailInput.invalid && emailInput.touched" class="campo-error">
+            ⚠️ Formato de email inválido.
+          </small>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 10px">
+        <select
+          name="direccionId"
+          [(ngModel)]="formulario.direccionId"
+          required
+          style="padding: 10px; border-radius: 6px; border: 1px solid #ddd; flex: 1"
+        >
+          <option value="" disabled selected>-- Selecciona una Dirección --</option>
+          <option *ngFor="let dir of direcciones" [value]="dir.id">
+            {{ dir.textoMostrar }}
+          </option>
+        </select>
+
+        <button
+          type="button"
+          class="btn-nueva-dir"
+          (click)="abrirModal()"
+          title="Crear nueva dirección"
+        >
+          ➕ Nueva
+        </button>
+      </div>
+
+      <div class="botones-form" style="margin-top: 15px">
+        <button
+          type="submit"
+          class="btn-crear"
+          [disabled]="clienteForm.invalid"
+          [class.btn-deshabilitado]="clienteForm.invalid"
+        >
+          {{ idEdicion ? "Actualizar Cliente" : "Registrar Cliente" }}
+        </button>
+        <button
+          type="button"
+          class="btn-cancelar"
+          *ngIf="idEdicion"
+          (click)="resetearFormulario()"
+          style="margin-left: 10px"
+        >
+          Cancelar Edición
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <hr />
+
+  <div *ngIf="clientes.length === 0" class="cargando">
+    <p>⏳ Cargando clientes...</p>
+  </div>
+
+  <div class="lista-clientes">
+    <div *ngFor="let cliente of clientes" class="tarjeta">
+      <div class="tarjeta-header">
+        <h2 style="margin: 0">{{ cliente.nombre }}</h2>
+        <div>
+          <button class="btn-editar" (click)="cargarParaEdicion(cliente)" title="Editar">✏️</button>
+          <button class="btn-eliminar" (click)="eliminarCliente(cliente.id, cliente.nombre)" title="Eliminar">🗑️</button>
+        </div>
+      </div>
+
+      <p><strong>📍 Dirección:</strong> {{ cliente.direccion?.calle }} - {{ cliente.direccion?.ciudad }} ({{ cliente.direccion?.cp }})</p>
+      <p *ngIf="cliente.telefono"><strong>📞</strong> {{ cliente.prefijo || '+34' }} {{ cliente.telefono }}</p>
+      <p *ngIf="cliente.email"><strong>📧</strong> {{ cliente.email }}</p>
+      <small>ID Interno: {{ cliente.id }}</small>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       🛸 MODAL DE DIRECCIONES
+       ========================================== -->
+  <div class="modal-overlay" *ngIf="mostrarModal">
+    <div class="modal-content">
+      <h3 style="margin-top: 0">📍 Nueva Dirección</h3>
+
+      <form #dirForm="ngForm" (ngSubmit)="guardarDireccion()">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <input type="text" placeholder="Calle y número" name="calle"
+            [(ngModel)]="nuevaDireccion.calle" required
+            style="padding: 10px; width: 100%; box-sizing: border-box" />
+
+          <div style="display: flex; gap: 10px">
+            <input type="text" placeholder="Ciudad" name="ciudad"
+              [(ngModel)]="nuevaDireccion.ciudad" required
+              style="padding: 10px; flex: 1" />
+            <input type="text" placeholder="CP" name="cp"
+              [(ngModel)]="nuevaDireccion.cp" required pattern="^[0-9]+$"
+              style="padding: 10px; width: 100px" />
+          </div>
+
+          <div style="display: flex; gap: 10px">
+            <input type="text" placeholder="Provincia" name="provincia"
+              [(ngModel)]="nuevaDireccion.provincia" required
+              style="padding: 10px; flex: 1" />
+            <input type="text" placeholder="País" name="pais"
+              [(ngModel)]="nuevaDireccion.pais" required
+              style="padding: 10px; flex: 1" />
+          </div>
+        </div>
+
+        <div class="botones-form" style="margin-top: 20px">
+          <button type="submit" class="btn-crear"
+            [disabled]="dirForm.invalid" [class.btn-deshabilitado]="dirForm.invalid">
+            Guardar Dirección
+          </button>
+          <button type="button" class="btn-cancelar" (click)="cerrarModal()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
