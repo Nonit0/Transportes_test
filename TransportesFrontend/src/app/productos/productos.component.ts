@@ -38,8 +38,8 @@ export class ProductosComponent implements OnInit {
   }
 
   cargarProductos() {
-    this.http.get<ProductoDTO[]>('https://localhost:5011/api/Productos')
-      .subscribe({ next: (data) => this.productos = data });
+    this.http.get<any>('https://localhost:5011/api/Productos')
+      .subscribe({ next: (data) => this.productos = data.$values ? data.$values : data });
   }
 
   guardarProducto() {

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { AlmacenDTO, CreateAlmacenDTO, DireccionDTO } from './almacen.dto';
+import { Almacen, DireccionCombo } from './almacen.dto';
 
 @Component({
   selector: 'app-almacenes',
@@ -8,15 +8,12 @@ import { AlmacenDTO, CreateAlmacenDTO, DireccionDTO } from './almacen.dto';
   styleUrls: ['./almacenes.component.css']
 })
 export class AlmacenesComponent implements OnInit {
-  almacenes: AlmacenDTO[] = [];
-  direcciones: DireccionDTO[] = [];
+  almacenes: Almacen[] = [];
+  direcciones: DireccionCombo[] = [];
   idEdicion: string | null = null;
   
-  formulario: CreateAlmacenDTO = {
+  formulario = {
     nombre: '', direccionId: ''
-    /* Ya no hacen falta pues estos pertenecen a direccion no a almacen
-    , ciudad: '', cp: '', provincia: '', pais: ''
-    */
   };
 
   // ==========================================
@@ -34,36 +31,37 @@ export class AlmacenesComponent implements OnInit {
 
   // GET: Carga todos los almacenes
   cargarAlmacenes() {
-    this.http.get<AlmacenDTO[]>('https://localhost:5011/api/Almacenes')
+    this.http.get<any>('https://localhost:5011/api/Almacenes')
       .subscribe({
-        next: (data) => this.almacenes = data,
+        next: (data) => this.almacenes = data.$values ? data.$values : data,
         error: (err) => console.error('Error al cargar almacenes', err)
       });
   }
 
   // GET: Carga todas las direcciones para el Desplegable
   cargarDirecciones() {
-    this.http.get<DireccionDTO[]>('https://localhost:5011/api/Direcciones')
+    this.http.get<any>('https://localhost:5011/api/Direcciones')
       .subscribe({
-        next: (data) => this.direcciones = data,
+        next: (data) => this.direcciones = data.$values ? data.$values : data,
         error: (err) => console.error('Error al cargar direcciones', err)
       });
   }
 
   // POST / PUT: Crea o Actualiza un almacén
   guardarAlmacen() {
-    // debugg console.log('📦 Datos a enviar al servidor:', this.formulario);
     if (this.idEdicion) {
-      this.http.put<AlmacenDTO>(`https://localhost:5011/api/Almacenes/${this.idEdicion}`, this.formulario)
+      this.http.put<any>(`https://localhost:5011/api/Almacenes/${this.idEdicion}`, this.formulario)
         .subscribe({
           next: (actualizado) => {
-            this.almacenes = this.almacenes.map(e => e.id === actualizado.id ? actualizado : e);
+            // El backend puede devolver con $id wrapper del ReferenceHandler
+            const almacen = actualizado.$values ? actualizado.$values : actualizado;
+            this.almacenes = this.almacenes.map(e => e.id === almacen.id ? almacen : e);
             this.resetearFormulario();
           },
           error: (err) => console.error('Error al actualizar', err)
         });
     } else {
-      this.http.post<AlmacenDTO>('https://localhost:5011/api/Almacenes', this.formulario)
+      this.http.post<any>('https://localhost:5011/api/Almacenes', this.formulario)
         .subscribe({
           next: (creado) => {
             this.almacenes.unshift(creado); 
@@ -89,11 +87,11 @@ export class AlmacenesComponent implements OnInit {
   }
 
   // PUT: Prepara el formulario para editar
-  cargarParaEdicion(elemento: AlmacenDTO) {
+  cargarParaEdicion(elemento: Almacen) {
     this.idEdicion = elemento.id;
     this.formulario = { 
       nombre: elemento.nombre, 
-      direccionId: elemento.direccionId // Selecciona automáticamente el valor en el <select>
+      direccionId: elemento.direccionId
     };
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -116,15 +114,11 @@ export class AlmacenesComponent implements OnInit {
   }
 
   guardarDireccion() {
-    // Llamamos al Backend para crear la dirección
-    this.http.post<DireccionDTO>('https://localhost:5011/api/Direcciones', this.nuevaDireccion)
+    this.http.post<any>('https://localhost:5011/api/Direcciones', this.nuevaDireccion)
       .subscribe({
         next: (dirCreada) => {
-          // 1. Añadimos la dirección al array para que aparezca en el desplegable
           this.direcciones.push(dirCreada);
-          // 2. La dejamos seleccionada en el formulario del almacén por comodidad
           this.formulario.direccionId = dirCreada.id;
-          // 3. Cerramos el modal
           this.cerrarModal();
         },
         error: (err) => {

@@ -1,46 +1,26 @@
-// Fíjate: No hay 'DeletedAt'. Es el contrato limpio y seguro.
-export interface AlmacenDTO {
+// Interfaz que refleja la entidad Almacen del backend (sin DTOs)
+export interface Almacen {
     id: string;
     nombre: string;
     direccionId: string;
-    direccionCompleta: string;
-    /* Ya no hacen falta pues estos pertenecen a direccion no a almacen
+    deletedAt: string | null;
+    // Viene gracias al .Include(a => a.Direccion) del backend
+    direccion: Direccion | null;
+}
+
+// Interfaz que refleja la entidad Direccion del backend
+export interface Direccion {
+    id: string;
+    calle: string;
     ciudad: string;
-    cp: string;
     provincia: string;
+    cp: string;
     pais: string;
-    */
+    deletedAt: string | null;
 }
 
-// El DTO de Escritura (Reflejo exacto de tu C#)
-export interface CreateAlmacenDTO {
-  nombre: string;
-  direccionId: string;
-  /* Ya no hacen falta pues estos pertenecen a direccion no a almacen
-  ciudad: string;
-  cp: string;
-  provincia: string;
-  pais: string;
-  */
-}
-
-export interface DireccionDTO {
+// Para el combo del select de direcciones (lo que devuelve DireccionesController GET)
+export interface DireccionCombo {
   id: string;
-  textoMostrar: string; // lo que se muestra en el select
-  calle: string;
-  ciudad: string;
-  provincia: string;
-  cp: string;
-  pais: string;
-}
-
-export interface UpdateAlmacenDTO {
-  nombre: string;
-  direccionId: string;
-  /* Ya no hacen falta pues estos pertenecen a direccion no a almacen
-  ciudad: string;
-  cp: string;
-  provincia: string;
-  pais: string;
-  */
+  textoMostrar: string;
 }
