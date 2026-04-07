@@ -70,7 +70,13 @@ export class ClientesComponent implements OnInit {
   cargarDirecciones() {
     this.http.get<any>(`${this.apiUrl}/Direcciones`)
       .subscribe({
-        next: (data) => this.direcciones = data.$values ? data.$values : data,
+        next: (data) => {
+          const raw = data.$values ? data.$values : data;
+          this.direcciones = raw.map((d: any) => ({
+            ...d,
+            textoMostrar: `${d.calle} - ${d.ciudad} (${d.cp})`
+          }));
+        },
         error: (err) => console.error('Error al cargar direcciones', err)
       });
   }
@@ -79,8 +85,8 @@ export class ClientesComponent implements OnInit {
     if (this.idEdicion) {
       this.http.put<any>(`${this.apiUrl}/Clientes/${this.idEdicion}`, this.formulario)
         .subscribe({
-          next: () => {
-            this.cargarClientes();
+          next: (actualizado) => {
+            this.clientes = this.clientes.map(c => c.id === actualizado.id ? actualizado : c);
             this.resetearFormulario();
           },
           error: (err) => {
@@ -91,8 +97,8 @@ export class ClientesComponent implements OnInit {
     } else {
       this.http.post<any>(`${this.apiUrl}/Clientes`, this.formulario)
         .subscribe({
-          next: () => {
-            this.cargarClientes();
+          next: (creado) => {
+            this.clientes.unshift(creado);
             this.resetearFormulario();
           },
           error: (err) => {
@@ -146,8 +152,12 @@ export class ClientesComponent implements OnInit {
     this.http.post<any>(`${this.apiUrl}/Direcciones`, this.nuevaDireccion)
       .subscribe({
         next: (dirCreada) => {
-          this.direcciones.push(dirCreada);
-          this.formulario.direccionId = dirCreada.id;
+          const nueva = {
+             ...dirCreada,
+             textoMostrar: `${dirCreada.calle} - ${dirCreada.ciudad} (${dirCreada.cp})`
+          };
+          this.direcciones.push(nueva);
+          this.formulario.direccionId = nueva.id;
           this.cerrarModal();
         },
         error: () => alert('Hubo un problema al crear la nueva dirección.')

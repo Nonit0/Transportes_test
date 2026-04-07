@@ -36,7 +36,9 @@ export class AlmacenesComponent implements OnInit {
   cargarAlmacenes() {
     this.http.get<any>(`${this.apiUrl}/Almacenes`)
       .subscribe({
-        next: (data) => this.almacenes = data.$values ? data.$values : data,
+        next: (data) => {
+          this.almacenes = data.$values ? data.$values : data;
+        },
         error: (err) => console.error('Error al cargar almacenes', err)
       });
   }
@@ -45,7 +47,14 @@ export class AlmacenesComponent implements OnInit {
   cargarDirecciones() {
     this.http.get<any>(`${this.apiUrl}/Direcciones`)
       .subscribe({
-        next: (data) => this.direcciones = data.$values ? data.$values : data,
+        next: (data) => {
+          const raw = data.$values ? data.$values : data;
+          // Generamos textoMostrar si el backend no lo envía (o usamos el del backend si lo hace)
+          this.direcciones = raw.map((d: any) => ({
+            ...d,
+            textoMostrar: d.textoMostrar || `${d.calle}, ${d.ciudad} (${d.cp})`
+          }));
+        },
         error: (err) => console.error('Error al cargar direcciones', err)
       });
   }
@@ -56,9 +65,8 @@ export class AlmacenesComponent implements OnInit {
       this.http.put<any>(`${this.apiUrl}/Almacenes/${this.idEdicion}`, this.formulario)
         .subscribe({
           next: (actualizado) => {
-            // El backend puede devolver con $id wrapper del ReferenceHandler
-            const almacen = actualizado.$values ? actualizado.$values : actualizado;
-            this.almacenes = this.almacenes.map(e => e.id === almacen.id ? almacen : e);
+            // Actualizamos localmente el almacén modificado
+            this.almacenes = this.almacenes.map(a => a.id === actualizado.id ? actualizado : a);
             this.resetearFormulario();
           },
           error: (err) => console.error('Error al actualizar', err)
@@ -67,6 +75,7 @@ export class AlmacenesComponent implements OnInit {
       this.http.post<any>(`${this.apiUrl}/Almacenes`, this.formulario)
         .subscribe({
           next: (creado) => {
+            // Añadimos el nuevo al principio para verlo de inmediato
             this.almacenes.unshift(creado); 
             this.resetearFormulario();
           },
@@ -120,8 +129,13 @@ export class AlmacenesComponent implements OnInit {
     this.http.post<any>(`${this.apiUrl}/Direcciones`, this.nuevaDireccion)
       .subscribe({
         next: (dirCreada) => {
-          this.direcciones.push(dirCreada);
-          this.formulario.direccionId = dirCreada.id;
+          // Generamos el texto para que el selector lo muestre correctamente de inmediato
+          const nuevaDir = {
+            ...dirCreada,
+            textoMostrar: `${dirCreada.calle}, ${dirCreada.ciudad} (${dirCreada.cp})`
+          };
+          this.direcciones.push(nuevaDir);
+          this.formulario.direccionId = nuevaDir.id;
           this.cerrarModal();
         },
         error: (err) => {

@@ -63,7 +63,8 @@
               "browserTarget": "TransportesFrontend:build:production"
             },
             "development": {
-              "browserTarget": "TransportesFrontend:build:development"
+              "browserTarget": "TransportesFrontend:build:development",
+              "proxyConfig": "src/proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

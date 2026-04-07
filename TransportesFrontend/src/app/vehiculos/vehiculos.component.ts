@@ -28,7 +28,15 @@ export class VehiculosComponent implements OnInit {
   cargarCamiones(): void {
     this.vehiculoService.getCamiones().subscribe({
       next: (data) => {
-        this.camiones = data;
+        // Normalización para que funcione con PascalCase o camelCase
+        this.camiones = data.map((c: any) => ({
+          ...c,
+          id: c.id || c.Id,
+          matricula: c.matricula || c.Matricula,
+          capacidadPeso: c.capacidadPeso || c.CapacidadPeso,
+          capacidadVolumen: c.capacidadVolumen || c.CapacidadVolumen,
+          activo: c.activo !== undefined ? c.activo : c.Activo
+        }));
       },
       error: (err) => {
         console.error('Error cargando camiones', err);
@@ -45,8 +53,9 @@ export class VehiculosComponent implements OnInit {
     }
 
     this.vehiculoService.createCamion(this.nuevoCamion).subscribe({
-      next: () => {
-         this.cargarCamiones(); 
+      next: (creado) => {
+         // Añadimos el nuevo al principio de la lista
+         this.camiones.unshift(creado); 
          this.nuevoCamion = { matricula: '', capacidadPeso: 0, capacidadVolumen: 0, activo: true };
       },
       error: (err) => {
@@ -72,24 +81,24 @@ export class VehiculosComponent implements OnInit {
   guardarEdicion(): void {
     if (!this.camionEditando) return;
 
-    const payload: UpdateCamion = {
-      matricula: this.camionEditando.matricula,
-      capacidadPeso: this.camionEditando.capacidadPeso,
-      capacidadVolumen: this.camionEditando.capacidadVolumen,
-      activo: this.camionEditando.activo
-    };
-
-    this.vehiculoService.updateCamion(this.camionEditando.id!, payload).subscribe({
-      next: () => {
-         this.cargarCamiones();
+    this.vehiculoService.updateCamion(this.camionEditando.id!, this.camionEditando).subscribe({
+      next: (actualizado) => {
+         if (!actualizado) {
+            this.cargarCamiones();
+         } else {
+            const res = actualizado as any;
+            const normalizado = { ...res, id: res.id || res.Id };
+            this.camiones = this.camiones.map(c => c.id === normalizado.id ? normalizado : c);
+         }
          this.camionEditando = null;
          this.mensajeError = '';
       },
       error: (err) => {
+         console.error('Detalle del error 400:', err.error); // Para ver qué campo falla
          if (err.error && err.error.mensaje) {
             this.mensajeError = err.error.mensaje;
          } else {
-            this.mensajeError = 'Error al actualizar el camión.';
+            this.mensajeError = 'Error al actualizar el camión. Revisa los detalles en la consola.';
          }
       }
     });
@@ -110,14 +119,18 @@ export class VehiculosComponent implements OnInit {
   }
 
   reactivarCamion(camion: Camion): void {
-      const payload: UpdateCamion = {
-        matricula: camion.matricula,
-        capacidadPeso: camion.capacidadPeso,
-        capacidadVolumen: camion.capacidadVolumen,
-        activo: true // Reactivamos
-      };
-      this.vehiculoService.updateCamion(camion.id!, payload).subscribe({
-        next: () => this.cargarCamiones(),
+      const camionCompleto = { ...camion, activo: true };
+      
+      this.vehiculoService.updateCamion(camion.id!, camionCompleto).subscribe({
+        next: (actualizado) => {
+          if (!actualizado) {
+            this.cargarCamiones();
+          } else {
+            const res = actualizado as any;
+            const normalizado = { ...res, id: res.id || res.Id };
+            this.camiones = this.camiones.map(c => c.id === normalizado.id ? normalizado : c);
+          }
+        },
         error: (err) => {
           console.error(err);
           this.mensajeError = 'Error al reactivar el camión.';
