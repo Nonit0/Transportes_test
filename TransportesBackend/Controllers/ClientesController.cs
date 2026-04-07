@@ -38,6 +38,8 @@ namespace TransportesBackend.Controllers
         [HttpPost]
         public async Task<ActionResult<Cliente>> CreateCliente([FromBody] Cliente cliente)
         {
+            // ModelState comprueba las Data Annotations (etiquetas) que pusiste en tu clase
+            // .IsValid comprueba si los datos cumplen las reglas de anotación
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             // Verificar que la dirección existe
@@ -64,6 +66,8 @@ namespace TransportesBackend.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<Cliente>> PutCliente(string id, [FromBody] Cliente clienteActualizado)
         {
+            // ModelState comprueba las Data Annotations (etiquetas) que pusiste en tu clase
+            // .IsValid comprueba si los datos cumplen las reglas de anotación
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var cliente = await _context.Cliente.FindAsync(id);
@@ -92,6 +96,7 @@ namespace TransportesBackend.Controllers
             var cliente = await _context.Cliente.FindAsync(id);
             if (cliente == null) return NotFound();
 
+            // SOFT DELETE: Marcamos la baja lógica para mantener historial.
             cliente.DeletedAt = DateTime.UtcNow;
             _context.Cliente.Update(cliente);
             await _context.SaveChangesAsync();

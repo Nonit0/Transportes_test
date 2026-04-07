@@ -40,9 +40,12 @@ namespace TransportesBackend.Controllers
         [HttpPost]
         public async Task<ActionResult<Camion>> CreateCamion([FromBody] Camion camion)
         {
+            // ModelState comprueba las Data Annotations (etiquetas) que pusiste en tu clase
+            // .IsValid comprueba si los datos cumplen las reglas de anotación
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             // 1. Validar que la matrícula no exista ya (Evita error 500 de SQL por el UNIQUE)
+            // AnyAsync devuelve un booleano comprobando que exista
             var matriculaExiste = await _context.Camion.AnyAsync(c => c.Matricula == camion.Matricula);
             if (matriculaExiste)
             {
@@ -59,31 +62,24 @@ namespace TransportesBackend.Controllers
         // PUT: api/Camiones/{id}   //
         // ======================== //
         [HttpPut("{id}")]
-        public async Task<ActionResult<Camion>> PutCamion(string id, [FromBody] Camion camionDto)
+        public async Task<ActionResult> PutCamion(string id, [FromBody] Camion camionActualizado)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            // 1. Seguridad básica: Que el ID de la URL sea el mismo que el del objeto
+            if (id != camionActualizado.Id) return BadRequest();
 
-            var camion = await _context.Camion.FindAsync(id);
-            if (camion == null) return NotFound(new { mensaje = "El camión no existe." });
-
-            // Comprobar que no estemos intentando poner una matrícula que ya tiene otro camión
+            // 2. Validación de matrícula (la que ya tenías)
             var matriculaDuplicada = await _context.Camion
-                .AnyAsync(c => c.Matricula == camionDto.Matricula && c.Id != id);
+                .AnyAsync(c => c.Matricula == camionActualizado.Matricula && c.Id != id);
                 
-            if (matriculaDuplicada)
-            {
-                return BadRequest(new { mensaje = "Otro camión ya utiliza esta matrícula." });
-            }
+            if (matriculaDuplicada) return BadRequest("Matrícula duplicada");
 
-            // Actualizar datos
-            camion.Matricula = camionDto.Matricula;
-            camion.CapacidadPeso = camionDto.CapacidadPeso;
-            camion.CapacidadVolumen = camionDto.CapacidadVolumen;
-            camion.Activo = camionDto.Activo;
+            // 3. Le decimos a EF "Este objeto completo ha sido modificado, písalo todo"
+            _context.Entry(camionActualizado).State = EntityState.Modified;
 
+            // 4. Guardamos
             await _context.SaveChangesAsync();
 
-            return Ok(camion);
+            return NoContent(); // En los PUT es estándar devolver 204 NoContent
         }
 
         // ========================== //

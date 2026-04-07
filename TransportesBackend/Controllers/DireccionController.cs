@@ -18,37 +18,33 @@ namespace TransportesBackend.Controllers
             _context = context;
         }
 
+        // ======================= //
+        // GET: api/Direcciones    //
+        // ======================= //
         [HttpGet]
-        public async Task<IActionResult> GetDirecciones()
+        public async Task<ActionResult<IEnumerable<Direccion>>> GetDirecciones()
         {
+            // AsNoTracking no guarda el estado en memoria y permite que el programa sea más rapido
             var direcciones = await _context.Direccion
-                .AsNoTracking() // Gracias a esto no se guarda en memoria y permite que el programa sea mas rapido
-                .Select(d => new // lo que le enviamos al DTO
-                {
-                    Id = d.Id,
-                    TextoMostrar = d.Calle + " - " + d.Ciudad + " (" + d.Cp + ")"
-                })
+                .AsNoTracking() 
                 .ToListAsync();
 
             return Ok(direcciones);
         }
         
+        // ======================= //
+        // POST: api/Direcciones   //
+        // ======================= //
         [HttpPost]
-        public async Task<IActionResult> PostDireccion([FromBody] Direccion nuevaDireccion)
+        public async Task<ActionResult<Direccion>> PostDireccion([FromBody] Direccion nuevaDireccion)
         {
-            // Nota rápida: Aquí estamos usando el modelo 'Direccion' directo por simplicidad del Modal, 
-            // pero lo ideal en un futuro es usar un CreateDireccionDTO.
+            // ModelState comprueba las Data Annotations (etiquetas) que pusiste en tu clase
+            if (!ModelState.IsValid) return BadRequest(ModelState);
             
             _context.Direccion.Add(nuevaDireccion);
             await _context.SaveChangesAsync();
 
-            // Devolvemos el objeto exactamente con la forma de 'DireccionComboDTO' 
-            // que Angular espera recibir para meter en el select
-            return Ok(new {
-                Id = nuevaDireccion.Id,
-                TextoMostrar = nuevaDireccion.Calle + " - " + nuevaDireccion.Ciudad + " (" + nuevaDireccion.Cp + ")"
-            });
+            return CreatedAtAction(nameof(GetDirecciones), new { id = nuevaDireccion.Id }, nuevaDireccion);
         }
     }
-    
 }
