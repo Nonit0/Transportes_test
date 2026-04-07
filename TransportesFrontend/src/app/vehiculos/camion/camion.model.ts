@@ -1,4 +1,4 @@
-export interface CamionDTO {
+export interface Camion {
   id?: string;
   matricula: string;
   capacidadPeso: number;
@@ -6,14 +6,14 @@ export interface CamionDTO {
   activo: boolean;
 }
 
-export interface CreateCamionDTO {
+export interface CreateCamion {
   matricula: string;
   capacidadPeso: number;
   capacidadVolumen: number;
   activo: boolean;
 }
 
-export interface UpdateCamionDTO {
+export interface UpdateCamion {
   matricula: string;
   capacidadPeso: number;
   capacidadVolumen: number;

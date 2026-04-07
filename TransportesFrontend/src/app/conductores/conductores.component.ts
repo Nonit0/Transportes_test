@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 export interface Conductor {
   id: string;
@@ -25,6 +26,8 @@ export class ConductoresComponent implements OnInit {
   idEdicion: string | null = null;
   conductorEnEdicion: any = {};
 
+  private apiUrl = environment.apiUrl;
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
@@ -32,12 +35,12 @@ export class ConductoresComponent implements OnInit {
   }
 
   cargarConductores() {
-    this.http.get<any>('https://localhost:5011/api/Conductores')
+    this.http.get<any>(`${this.apiUrl}/Conductores`)
       .subscribe({ next: (data) => this.conductores = data.$values ? data.$values : data });
   }
 
   guardarConductor() {
-    this.http.post<Conductor>('https://localhost:5011/api/Conductores', this.formulario)
+    this.http.post<Conductor>(`${this.apiUrl}/Conductores`, this.formulario)
       .subscribe({
         next: (creado) => {
           this.conductores.unshift(creado);
@@ -52,7 +55,7 @@ export class ConductoresComponent implements OnInit {
 
   eliminarConductor(id: string, nombre: string) {
     if (confirm(`¿Eliminar definitivamente al conductor "${nombre}"?`)) {
-      this.http.delete(`https://localhost:5011/api/Conductores/${id}`)
+      this.http.delete(`${this.apiUrl}/Conductores/${id}`)
         .subscribe({
           next: () => this.conductores = this.conductores.filter(c => c.id !== id),
           error: (err) => {
@@ -75,7 +78,7 @@ export class ConductoresComponent implements OnInit {
   }
 
   guardarEdicion(id: string) {
-    this.http.put(`https://localhost:5011/api/Conductores/${id}`, this.conductorEnEdicion)
+    this.http.put(`${this.apiUrl}/Conductores/${id}`, this.conductorEnEdicion)
       .subscribe({
         next: () => {
           this.conductores = this.conductores.map(c => c.id === id ? { ...this.conductorEnEdicion, id } : c);

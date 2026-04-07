@@ -6,6 +6,8 @@ import { VehiculosComponent } from '../vehiculos/vehiculos.component';
 import { ProductosComponent } from '../productos/productos.component';
 import { ConductoresComponent } from '../conductores/conductores.component';
 import { ClientesComponent } from '../clientes/clientes.component';
+import { FabricasComponent } from '../fabricas/fabricas.component';
+import { PedidosComponent } from '../pedidos/pedidos.component';
 
 const routes: Routes = [
   { path: '', component: InicioComponent }, // La ruta vacía es el Inicio
@@ -14,6 +16,8 @@ const routes: Routes = [
   { path: 'productos', component: ProductosComponent },
   { path: 'conductores', component: ConductoresComponent },
   { path: 'clientes', component: ClientesComponent },
+  { path: 'fabricas', component: FabricasComponent },
+  { path: 'pedidos', component: PedidosComponent },
   { path: '**', redirectTo: '', pathMatch: 'full' } // Si el usuario escribe una ruta que no existe, lo mandamos al inicio
 ];
 

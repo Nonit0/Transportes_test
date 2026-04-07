@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Almacen, DireccionCombo } from './almacen.dto';
+import { Almacen, DireccionCombo } from './almacen.model';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-almacenes',
@@ -22,6 +23,8 @@ export class AlmacenesComponent implements OnInit {
   mostrarModal = false;
   nuevaDireccion = { calle: '', ciudad: '', cp: '', provincia: '', pais: '' };
 
+  private apiUrl = environment.apiUrl;
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
@@ -31,16 +34,16 @@ export class AlmacenesComponent implements OnInit {
 
   // GET: Carga todos los almacenes
   cargarAlmacenes() {
-    this.http.get<any>('https://localhost:5011/api/Almacenes')
+    this.http.get<any>(`${this.apiUrl}/Almacenes`)
       .subscribe({
         next: (data) => this.almacenes = data.$values ? data.$values : data,
         error: (err) => console.error('Error al cargar almacenes', err)
       });
   }
 
-  // GET: Carga todas las direcciones para el Desplegable
+  // GET:c Carga todas las direcciones para el Desplegable
   cargarDirecciones() {
-    this.http.get<any>('https://localhost:5011/api/Direcciones')
+    this.http.get<any>(`${this.apiUrl}/Direcciones`)
       .subscribe({
         next: (data) => this.direcciones = data.$values ? data.$values : data,
         error: (err) => console.error('Error al cargar direcciones', err)
@@ -50,7 +53,7 @@ export class AlmacenesComponent implements OnInit {
   // POST / PUT: Crea o Actualiza un almacén
   guardarAlmacen() {
     if (this.idEdicion) {
-      this.http.put<any>(`https://localhost:5011/api/Almacenes/${this.idEdicion}`, this.formulario)
+      this.http.put<any>(`${this.apiUrl}/Almacenes/${this.idEdicion}`, this.formulario)
         .subscribe({
           next: (actualizado) => {
             // El backend puede devolver con $id wrapper del ReferenceHandler
@@ -61,7 +64,7 @@ export class AlmacenesComponent implements OnInit {
           error: (err) => console.error('Error al actualizar', err)
         });
     } else {
-      this.http.post<any>('https://localhost:5011/api/Almacenes', this.formulario)
+      this.http.post<any>(`${this.apiUrl}/Almacenes`, this.formulario)
         .subscribe({
           next: (creado) => {
             this.almacenes.unshift(creado); 
@@ -76,7 +79,7 @@ export class AlmacenesComponent implements OnInit {
   eliminarAlmacen(id: string, nombre: string) {
     const confirmacion = confirm(`¿Estás seguro de que quieres eliminar el almacén "${nombre}"?`);
     if (confirmacion) {
-      this.http.delete(`https://localhost:5011/api/Almacenes/${id}`)
+      this.http.delete(`${this.apiUrl}/Almacenes/${id}`)
         .subscribe({
           next: () => {
             this.almacenes = this.almacenes.filter(a => a.id !== id);
@@ -114,7 +117,7 @@ export class AlmacenesComponent implements OnInit {
   }
 
   guardarDireccion() {
-    this.http.post<any>('https://localhost:5011/api/Direcciones', this.nuevaDireccion)
+    this.http.post<any>(`${this.apiUrl}/Direcciones`, this.nuevaDireccion)
       .subscribe({
         next: (dirCreada) => {
           this.direcciones.push(dirCreada);

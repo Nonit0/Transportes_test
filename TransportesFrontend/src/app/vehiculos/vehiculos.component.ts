@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { VehiculoService } from '../services/vehiculo.service';
-import { CamionDTO, CreateCamionDTO, UpdateCamionDTO } from './camion/camion.dto';
+import { Camion, CreateCamion, UpdateCamion } from './camion/camion.model';
 
 @Component({
   selector: 'app-vehiculos',
@@ -8,15 +8,15 @@ import { CamionDTO, CreateCamionDTO, UpdateCamionDTO } from './camion/camion.dto
   styleUrls: ['./vehiculos.component.css']
 })
 export class VehiculosComponent implements OnInit {
-  camiones: CamionDTO[] = [];
-  nuevoCamion: CreateCamionDTO = {
+  camiones: Camion[] = [];
+  nuevoCamion: CreateCamion = {
     matricula: '',
     capacidadPeso: 0,
     capacidadVolumen: 0,
     activo: true
   };
   
-  camionEditando: CamionDTO | null = null;
+  camionEditando: Camion | null = null;
   mensajeError: string = '';
 
   constructor(private vehiculoService: VehiculoService) {}
@@ -46,7 +46,7 @@ export class VehiculosComponent implements OnInit {
 
     this.vehiculoService.createCamion(this.nuevoCamion).subscribe({
       next: () => {
-         this.cargarCamiones();
+         this.cargarCamiones(); 
          this.nuevoCamion = { matricula: '', capacidadPeso: 0, capacidadVolumen: 0, activo: true };
       },
       error: (err) => {
@@ -59,7 +59,7 @@ export class VehiculosComponent implements OnInit {
     });
   }
 
-  iniciarEdicion(camion: CamionDTO): void {
+  iniciarEdicion(camion: Camion): void {
     this.camionEditando = { ...camion };
     this.mensajeError = '';
   }
@@ -72,14 +72,14 @@ export class VehiculosComponent implements OnInit {
   guardarEdicion(): void {
     if (!this.camionEditando) return;
 
-    const dto: UpdateCamionDTO = {
+    const payload: UpdateCamion = {
       matricula: this.camionEditando.matricula,
       capacidadPeso: this.camionEditando.capacidadPeso,
       capacidadVolumen: this.camionEditando.capacidadVolumen,
       activo: this.camionEditando.activo
     };
 
-    this.vehiculoService.updateCamion(this.camionEditando.id!, dto).subscribe({
+    this.vehiculoService.updateCamion(this.camionEditando.id!, payload).subscribe({
       next: () => {
          this.cargarCamiones();
          this.camionEditando = null;
@@ -109,14 +109,14 @@ export class VehiculosComponent implements OnInit {
     }
   }
 
-  reactivarCamion(camion: CamionDTO): void {
-      const dto: UpdateCamionDTO = {
+  reactivarCamion(camion: Camion): void {
+      const payload: UpdateCamion = {
         matricula: camion.matricula,
         capacidadPeso: camion.capacidadPeso,
         capacidadVolumen: camion.capacidadVolumen,
         activo: true // Reactivamos
       };
-      this.vehiculoService.updateCamion(camion.id!, dto).subscribe({
+      this.vehiculoService.updateCamion(camion.id!, payload).subscribe({
         next: () => this.cargarCamiones(),
         error: (err) => {
           console.error(err);

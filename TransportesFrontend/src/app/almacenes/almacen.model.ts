@@ -1,4 +1,4 @@
-// Interfaz que refleja la entidad Almacen del backend (sin DTOs)
+// Interfaz que refleja la entidad Almacen del backend
 export interface Almacen {
     id: string;
     nombre: string;

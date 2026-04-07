@@ -1,29 +1,30 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CamionDTO, CreateCamionDTO, UpdateCamionDTO } from '../vehiculos/camion/camion.dto';
+import { Camion, CreateCamion, UpdateCamion } from '../vehiculos/camion/camion.model';
 import { map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class VehiculoService {
 
-  private apiUrl = 'https://localhost:5011/api/Camiones';
+  private apiUrl = `${environment.apiUrl}/Camiones`;
 
   constructor(private http: HttpClient) { }
 
-  getCamiones(): Observable<CamionDTO[]> {
+  getCamiones(): Observable<Camion[]> {
     return this.http.get<any>(this.apiUrl)
       .pipe(map(res => res.$values ? res.$values : res));
   }
 
-  createCamion(camion: CreateCamionDTO): Observable<CamionDTO> {
-    return this.http.post<CamionDTO>(this.apiUrl, camion);
+  createCamion(camion: CreateCamion): Observable<Camion> {
+    return this.http.post<Camion>(this.apiUrl, camion);
   }
 
-  updateCamion(id: string, camion: UpdateCamionDTO): Observable<CamionDTO> {
-    return this.http.put<CamionDTO>(`${this.apiUrl}/${id}`, camion);
+  updateCamion(id: string, camion: UpdateCamion): Observable<Camion> {
+    return this.http.put<Camion>(`${this.apiUrl}/${id}`, camion);
   }
 
   deleteCamion(id: string): Observable<void> {

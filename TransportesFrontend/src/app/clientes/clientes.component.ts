@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 export interface Cliente {
   id: string;
@@ -49,6 +50,8 @@ export class ClientesComponent implements OnInit {
   mostrarModal = false;
   nuevaDireccion = { calle: '', ciudad: '', cp: '', provincia: '', pais: '' };
 
+  private apiUrl = environment.apiUrl;
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
@@ -57,7 +60,7 @@ export class ClientesComponent implements OnInit {
   }
 
   cargarClientes() {
-    this.http.get<any>('https://localhost:5011/api/Clientes')
+    this.http.get<any>(`${this.apiUrl}/Clientes`)
       .subscribe({
         next: (data) => this.clientes = data.$values ? data.$values : data,
         error: (err) => console.error('Error al cargar clientes', err)
@@ -65,7 +68,7 @@ export class ClientesComponent implements OnInit {
   }
 
   cargarDirecciones() {
-    this.http.get<any>('https://localhost:5011/api/Direcciones')
+    this.http.get<any>(`${this.apiUrl}/Direcciones`)
       .subscribe({
         next: (data) => this.direcciones = data.$values ? data.$values : data,
         error: (err) => console.error('Error al cargar direcciones', err)
@@ -74,7 +77,7 @@ export class ClientesComponent implements OnInit {
 
   guardarCliente() {
     if (this.idEdicion) {
-      this.http.put<any>(`https://localhost:5011/api/Clientes/${this.idEdicion}`, this.formulario)
+      this.http.put<any>(`${this.apiUrl}/Clientes/${this.idEdicion}`, this.formulario)
         .subscribe({
           next: () => {
             this.cargarClientes();
@@ -86,7 +89,7 @@ export class ClientesComponent implements OnInit {
           }
         });
     } else {
-      this.http.post<any>('https://localhost:5011/api/Clientes', this.formulario)
+      this.http.post<any>(`${this.apiUrl}/Clientes`, this.formulario)
         .subscribe({
           next: () => {
             this.cargarClientes();
@@ -102,7 +105,7 @@ export class ClientesComponent implements OnInit {
 
   eliminarCliente(id: string, nombre: string) {
     if (confirm(`¿Eliminar definitivamente al cliente "${nombre}"?`)) {
-      this.http.delete(`https://localhost:5011/api/Clientes/${id}`)
+      this.http.delete(`${this.apiUrl}/Clientes/${id}`)
         .subscribe({
           next: () => this.clientes = this.clientes.filter(c => c.id !== id),
           error: () => alert('Hubo un problema al eliminar el cliente.')
@@ -140,7 +143,7 @@ export class ClientesComponent implements OnInit {
   }
 
   guardarDireccion() {
-    this.http.post<any>('https://localhost:5011/api/Direcciones', this.nuevaDireccion)
+    this.http.post<any>(`${this.apiUrl}/Direcciones`, this.nuevaDireccion)
       .subscribe({
         next: (dirCreada) => {
           this.direcciones.push(dirCreada);

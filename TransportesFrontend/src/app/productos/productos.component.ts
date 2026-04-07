@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
-export interface ProductoDTO {
+export interface Producto {
   id: string;
   nombre: string;
   descripcion: string;
@@ -9,7 +10,7 @@ export interface ProductoDTO {
   volumenUnitario: number;
 }
 
-export interface CreateProductoDTO {
+export interface CreateProducto {
   nombre: string;
   descripcion: string;
   pesoUnitario: number;
@@ -22,14 +23,16 @@ export interface CreateProductoDTO {
   styleUrls: ['./productos.component.css']
 })
 export class ProductosComponent implements OnInit {
-  productos: ProductoDTO[] = [];
+  productos: Producto[] = [];
   
   // Formulario de creación
-  formulario: CreateProductoDTO = { nombre: '', descripcion: '', pesoUnitario: 0, volumenUnitario: 0 };
+  formulario: CreateProducto = { nombre: '', descripcion: '', pesoUnitario: 0, volumenUnitario: 0 };
 
   // Variables para Edición Inline
   idEdicion: string | null = null;
   productoEnEdicion: any = {};
+
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
@@ -38,12 +41,12 @@ export class ProductosComponent implements OnInit {
   }
 
   cargarProductos() {
-    this.http.get<any>('https://localhost:5011/api/Productos')
+    this.http.get<any>(`${this.apiUrl}/Productos`)
       .subscribe({ next: (data) => this.productos = data.$values ? data.$values : data });
   }
 
   guardarProducto() {
-    this.http.post<ProductoDTO>('https://localhost:5011/api/Productos', this.formulario)
+    this.http.post<Producto>(`${this.apiUrl}/Productos`, this.formulario)
       .subscribe({
         next: (creado) => {
           this.productos.unshift(creado);
@@ -55,7 +58,7 @@ export class ProductosComponent implements OnInit {
 
   eliminarProducto(id: string, nombre: string) {
     if (confirm(`¿Eliminar definitivamente el producto "${nombre}"?`)) {
-      this.http.delete(`https://localhost:5011/api/Productos/${id}`)
+      this.http.delete(`${this.apiUrl}/Productos/${id}`)
         .subscribe({ 
           next: () => this.productos = this.productos.filter(p => p.id !== id),
           error: (err) => {
@@ -68,7 +71,7 @@ export class ProductosComponent implements OnInit {
   }
 
   // --- MÉTODOS DE EDICIÓN INLINE ---
-  activarEdicion(producto: ProductoDTO) {
+  activarEdicion(producto: Producto) {
     this.idEdicion = producto.id;
     this.productoEnEdicion = { ...producto }; // Copia rápida del objeto
   }
@@ -79,7 +82,7 @@ export class ProductosComponent implements OnInit {
   }
 
   guardarEdicion(id: string) {
-    this.http.put(`https://localhost:5011/api/Productos/${id}`, this.productoEnEdicion)
+    this.http.put(`${this.apiUrl}/Productos/${id}`, this.productoEnEdicion)
       .subscribe({
         next: () => {
           // Actualizamos la tabla visualmente
