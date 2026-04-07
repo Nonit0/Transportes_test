@@ -1,0 +1,41 @@
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using TransportesBackend.Models;
+using TransportesBackend.Services;
+
+namespace TransportesBackend.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class DireccionesController : ControllerBase
+    {
+        private readonly IDireccionService _direccionService;
+
+        public DireccionesController(IDireccionService direccionService)
+        {
+            _direccionService = direccionService;
+        }
+
+        // ======================= //
+        // GET: api/Direcciones    //
+        // ======================= //
+        [HttpGet]
+        public ActionResult<IEnumerable<Direccion>> GetDirecciones()
+        {
+            var direcciones = _direccionService.ObtenerTodas();
+            return Ok(direcciones);
+        }
+        
+        // ======================= //
+        // POST: api/Direcciones   //
+        // ======================= //
+        [HttpPost]
+        public ActionResult<Direccion> PostDireccion([FromBody] Direccion nuevaDireccion)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            
+            var direccionCreada = _direccionService.Crear(nuevaDireccion);
+            return CreatedAtAction(nameof(GetDirecciones), new { id = direccionCreada.Id }, direccionCreada);
+        }
+    }
+}

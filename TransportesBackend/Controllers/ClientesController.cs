@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
-using TransportesBackend.Models;
-using System.Linq;
 using System.Collections.Generic;
-using System;
+using TransportesBackend.Models;
+using TransportesBackend.Services;
 
 namespace TransportesBackend.Controllers
 {
@@ -12,23 +9,20 @@ namespace TransportesBackend.Controllers
     [Route("api/[controller]")]
     public class ClientesController : ControllerBase
     {
-        private readonly TransportesDbContext _context;
+        private readonly IClienteService _clienteService;
 
-        public ClientesController(TransportesDbContext context)
+        public ClientesController(IClienteService clienteService)
         {
-            _context = context;
+            _clienteService = clienteService;
         }
 
         // =================== //
         // GET: api/Clientes   //
         // =================== //
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Cliente>>> GetClientes()
+        public ActionResult<IEnumerable<Cliente>> GetClientes()
         {
-            var clientes = await _context.Cliente
-                .Include(c => c.Direccion)
-                .ToListAsync();
-
+            var clientes = _clienteService.ObtenerTodos();
             return Ok(clientes);
         }
 
@@ -36,27 +30,18 @@ namespace TransportesBackend.Controllers
         // POST: api/Clientes   //
         // ==================== //
         [HttpPost]
-        public async Task<ActionResult<Cliente>> CreateCliente([FromBody] Cliente cliente)
+        public ActionResult<Cliente> CreateCliente([FromBody] Cliente cliente)
         {
             // ModelState comprueba las Data Annotations (etiquetas) que pusiste en tu clase
             // .IsValid comprueba si los datos cumplen las reglas de anotación
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // Verificar que la dirección existe
-            var direccionExiste = await _context.Direccion.AnyAsync(d => d.Id == cliente.DireccionId);
-            if (!direccionExiste)
+            if (!_clienteService.ExisteDireccion(cliente.DireccionId))
             {
                 return BadRequest(new { mensaje = "La dirección seleccionada no existe." });
             }
 
-            _context.Cliente.Add(cliente);
-            await _context.SaveChangesAsync();
-
-            // Recargamos con Include para devolver la Dirección
-            var clienteCreado = await _context.Cliente
-                .Include(c => c.Direccion)
-                .FirstAsync(c => c.Id == cliente.Id);
-
+            var clienteCreado = _clienteService.Crear(cliente);
             return CreatedAtAction(nameof(GetClientes), new { id = clienteCreado.Id }, clienteCreado);
         }
 
@@ -64,25 +49,14 @@ namespace TransportesBackend.Controllers
         // PUT: api/Clientes/{id}   //
         // ======================== //
         [HttpPut("{id}")]
-        public async Task<ActionResult<Cliente>> PutCliente(string id, [FromBody] Cliente clienteActualizado)
+        public ActionResult<Cliente> PutCliente(string id, [FromBody] Cliente clienteActualizado)
         {
             // ModelState comprueba las Data Annotations (etiquetas) que pusiste en tu clase
             // .IsValid comprueba si los datos cumplen las reglas de anotación
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var cliente = await _context.Cliente.FindAsync(id);
-            if (cliente == null) return NotFound(new { mensaje = "El cliente no existe." });
-
-            cliente.Nombre = clienteActualizado.Nombre;
-            cliente.DireccionId = clienteActualizado.DireccionId;
-            cliente.Telefono = clienteActualizado.Telefono;
-            cliente.Email = clienteActualizado.Email;
-
-            await _context.SaveChangesAsync();
-
-            var resultado = await _context.Cliente
-                .Include(c => c.Direccion)
-                .FirstAsync(c => c.Id == cliente.Id);
+            var resultado = _clienteService.Actualizar(id, clienteActualizado);
+            if (resultado == null) return NotFound(new { mensaje = "El cliente no existe." });
 
             return Ok(resultado);
         }
@@ -91,15 +65,11 @@ namespace TransportesBackend.Controllers
         // DELETE: api/Clientes/{id}  //
         // ========================== //
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCliente(string id)
+        public IActionResult DeleteCliente(string id)
         {
-            var cliente = await _context.Cliente.FindAsync(id);
-            if (cliente == null) return NotFound();
+            var eliminado = _clienteService.Eliminar(id);
+            if (!eliminado) return NotFound();
 
-            // SOFT DELETE: Marcamos la baja lógica para mantener historial.
-            cliente.DeletedAt = DateTime.UtcNow;
-            _context.Cliente.Update(cliente);
-            await _context.SaveChangesAsync();
             return NoContent();
         }
     }

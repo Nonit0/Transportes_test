@@ -65,6 +65,12 @@ namespace TransportesBackend
             // ==========================================
             // AddScoped = una instancia por petición HTTP (lo más común en web)
             services.AddScoped<IAlmacenService, AlmacenService>();
+            services.AddScoped<ICamionService, CamionService>();
+            services.AddScoped<IClienteService, ClienteService>();
+            services.AddScoped<IConductorService, ConductorService>();
+            services.AddScoped<IDireccionService, DireccionService>();
+            services.AddScoped<IFabricaService, FabricaService>();
+            services.AddScoped<IProductoService, ProductoService>();
 
             // ==========================================
             // 3. Configuración CORS
@@ -86,6 +92,8 @@ namespace TransportesBackend
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+                options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
             });
 
             // ==========================================

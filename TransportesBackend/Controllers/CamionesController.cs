@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
-using TransportesBackend.Models; 
-using System.Linq;
 using System.Collections.Generic;
+using TransportesBackend.Models;
+using TransportesBackend.Services;
 
 namespace TransportesBackend.Controllers
 {
@@ -11,26 +9,20 @@ namespace TransportesBackend.Controllers
     [Route("api/[controller]")]
     public class CamionesController : ControllerBase
     {
-        private readonly TransportesDbContext _context;
+        private readonly ICamionService _camionService;
 
-        public CamionesController(TransportesDbContext context)
+        public CamionesController(ICamionService camionService)
         {
-            _context = context;
+            _camionService = camionService;
         }
 
         // =================== //
         // GET: api/Camiones   //
         // =================== //
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Camion>>> GetCamiones()
+        public ActionResult<IEnumerable<Camion>> GetCamiones()
         {
-            // Traemos todos los camiones ordenados para que los activos salgan primero
-            // IgnoreQueryFilters permite que se devuelvan los borrados logicamente (inactivos)
-            var camiones = await _context.Camion
-                .IgnoreQueryFilters()
-                .OrderByDescending(c => c.Activo) 
-                .ToListAsync();
-
+            var camiones = _camionService.ObtenerTodos();
             return Ok(camiones);
         }
 
@@ -38,64 +30,51 @@ namespace TransportesBackend.Controllers
         // POST: api/Camiones   //
         // ==================== //
         [HttpPost]
-        public async Task<ActionResult<Camion>> CreateCamion([FromBody] Camion camion)
+        public ActionResult<Camion> CreateCamion([FromBody] Camion camion)
         {
             // ModelState comprueba las Data Annotations (etiquetas) que pusiste en tu clase
             // .IsValid comprueba si los datos cumplen las reglas de anotación
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // 1. Validar que la matrícula no exista ya (Evita error 500 de SQL por el UNIQUE)
-            // AnyAsync devuelve un booleano comprobando que exista
-            var matriculaExiste = await _context.Camion.AnyAsync(c => c.Matricula == camion.Matricula);
-            if (matriculaExiste)
+            if (_camionService.ExisteMatricula(camion.Matricula))
             {
                 return BadRequest(new { mensaje = "Ya existe un camión registrado con esta matrícula." });
             }
 
-            _context.Camion.Add(camion);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetCamiones), new { id = camion.Id }, camion);
+            var nuevoCamion = _camionService.Crear(camion);
+            return CreatedAtAction(nameof(GetCamiones), new { id = nuevoCamion.Id }, nuevoCamion);
         }
 
         // ======================== //
         // PUT: api/Camiones/{id}   //
         // ======================== //
         [HttpPut("{id}")]
-        public async Task<ActionResult> PutCamion(string id, [FromBody] Camion camionActualizado)
+        public ActionResult<Camion> PutCamion(string id, [FromBody] Camion camionActualizado)
         {
-            // 1. Seguridad básica: Que el ID de la URL sea el mismo que el del objeto
-            if (id != camionActualizado.Id) return BadRequest();
+            System.Console.WriteLine($"DEBUG PUT ID: {id}");
+            System.Console.WriteLine($"DEBUG JSON MATRICULA: {camionActualizado?.Matricula}");
 
-            // 2. Validación de matrícula (la que ya tenías)
-            var matriculaDuplicada = await _context.Camion
-                .AnyAsync(c => c.Matricula == camionActualizado.Matricula && c.Id != id);
-                
-            if (matriculaDuplicada) return BadRequest("Matrícula duplicada");
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // 3. Le decimos a EF "Este objeto completo ha sido modificado, písalo todo"
-            _context.Entry(camionActualizado).State = EntityState.Modified;
+            if (_camionService.ExisteMatricula(camionActualizado.Matricula, id))
+            {
+                return BadRequest(new { mensaje = "Ya existe un camión registrado con esta matrícula." });
+            }
 
-            // 4. Guardamos
-            await _context.SaveChangesAsync();
+            var actualizado = _camionService.Actualizar(id, camionActualizado);
+            if (actualizado == null) return NotFound(new { mensaje = "El camión no existe o fue eliminado." });
 
-            return NoContent(); // En los PUT es estándar devolver 204 NoContent
+            return Ok(actualizado);
         }
 
         // ========================== //
         // DELETE: api/Camiones/{id}  //
         // ========================== //
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCamion(string id)
+        public IActionResult DeleteCamion(string id)
         {
-            var camion = await _context.Camion.FindAsync(id);
-            if (camion == null) return NotFound();
-
-            // SOFT DELETE: Marcamos la baja lógica para mantener historial.
-            camion.Activo = false;
-            camion.DeletedAt = System.DateTime.UtcNow;
-            _context.Camion.Update(camion);
-            await _context.SaveChangesAsync();
+            var eliminado = _camionService.Eliminar(id);
+            if (!eliminado) return NotFound();
 
             return NoContent();
         }

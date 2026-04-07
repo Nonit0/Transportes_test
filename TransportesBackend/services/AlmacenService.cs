@@ -43,6 +43,7 @@ namespace TransportesBackend.Services
         // =================== //
         public Almacen Crear(Almacen almacen)
         {
+            if (string.IsNullOrEmpty(almacen.Id)) almacen.Id = Guid.NewGuid().ToString();
             _context.Almacen.Add(almacen);
             _context.SaveChanges();
 

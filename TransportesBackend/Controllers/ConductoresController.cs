@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
-using TransportesBackend.Models;
-using System.Linq;
 using System.Collections.Generic;
+using TransportesBackend.Models;
+using TransportesBackend.Services;
 
 namespace TransportesBackend.Controllers
 {
@@ -11,17 +9,20 @@ namespace TransportesBackend.Controllers
     [Route("api/[controller]")]
     public class ConductoresController : ControllerBase
     {
-        private readonly TransportesDbContext _context;
+        private readonly IConductorService _conductorService;
 
-        public ConductoresController(TransportesDbContext context) { _context = context; }
+        public ConductoresController(IConductorService conductorService)
+        {
+            _conductorService = conductorService;
+        }
 
         // ======================= //
         // GET: api/Conductores    //
         // ======================= //
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Conductor>>> GetConductores()
+        public ActionResult<IEnumerable<Conductor>> GetConductores()
         {
-            var conductores = await _context.Conductor.ToListAsync();
+            var conductores = _conductorService.ObtenerTodos();
             return Ok(conductores);
         }
 
@@ -29,59 +30,49 @@ namespace TransportesBackend.Controllers
         // POST: api/Conductores   //
         // ======================= //
         [HttpPost]
-        public async Task<ActionResult<Conductor>> PostConductor([FromBody] Conductor conductor)
+        public ActionResult<Conductor> PostConductor([FromBody] Conductor conductor)
         {
             // ModelState comprueba las Data Annotations (etiquetas) que pusiste en tu clase
             // .IsValid comprueba si los datos cumplen las reglas de anotación
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (await _context.Conductor.AnyAsync(c => c.Dni == conductor.Dni))
+            if (_conductorService.ExisteDni(conductor.Dni))
+            {
                 return BadRequest(new { mensaje = "Ya existe un conductor con este DNI." });
+            }
 
-            _context.Conductor.Add(conductor);
-            await _context.SaveChangesAsync();
-
-            return Ok(conductor);
+            var nuevoConductor = _conductorService.Crear(conductor);
+            return Ok(nuevoConductor);
         }
 
         // ========================== //
         // PUT: api/Conductores/{id}  //
         // ========================== //
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutConductor(string id, [FromBody] Conductor conductorActualizado)
+        public ActionResult<Conductor> PutConductor(string id, [FromBody] Conductor conductorActualizado)
         {
-            // ModelState comprueba las Data Annotations (etiquetas) que pusiste en tu clase
-            // .IsValid comprueba si los datos cumplen las reglas de anotación
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var conductor = await _context.Conductor.FindAsync(id);
-            if (conductor == null) return NotFound();
-
-            if (await _context.Conductor.AnyAsync(c => c.Dni == conductorActualizado.Dni && c.Id != id))
+            if (_conductorService.ExisteDni(conductorActualizado.Dni, id))
+            {
                 return BadRequest(new { mensaje = "Otro conductor ya tiene este DNI asignado." });
+            }
 
-            conductor.Dni = conductorActualizado.Dni;
-            conductor.Nombre = conductorActualizado.Nombre;
-            conductor.Apellidos = conductorActualizado.Apellidos;
-            conductor.Telefono = conductorActualizado.Telefono;
+            var actualizado = _conductorService.Actualizar(id, conductorActualizado);
+            if (actualizado == null) return NotFound(new { mensaje = "El conductor no existe o fue eliminado." });
 
-            await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok(actualizado);
         }
 
         // ============================ //
         // DELETE: api/Conductores/{id} //
         // ============================ //
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteConductor(string id)
+        public IActionResult DeleteConductor(string id)
         {
-            var conductor = await _context.Conductor.FindAsync(id);
-            if (conductor == null) return NotFound();
+            var eliminado = _conductorService.Eliminar(id);
+            if (!eliminado) return NotFound();
 
-            // SOFT DELETE: Marcamos la baja lógica para mantener historial.
-            conductor.DeletedAt = System.DateTime.UtcNow;
-            _context.Conductor.Update(conductor);
-            await _context.SaveChangesAsync();
             return NoContent();
         }
     }

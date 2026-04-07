@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
-using TransportesBackend.Models;
-using System.Linq;
 using System.Collections.Generic;
+using TransportesBackend.Models;
+using TransportesBackend.Services;
 
 namespace TransportesBackend.Controllers
 {
@@ -11,17 +9,20 @@ namespace TransportesBackend.Controllers
     [Route("api/[controller]")]
     public class ProductosController : ControllerBase
     {
-        private readonly TransportesDbContext _context;
+        private readonly IProductoService _productoService;
 
-        public ProductosController(TransportesDbContext context) { _context = context; }
+        public ProductosController(IProductoService productoService)
+        {
+            _productoService = productoService;
+        }
 
         // ======================= //
         // GET: api/Productos      //
         // ======================= //
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Producto>>> GetProductos()
+        public ActionResult<IEnumerable<Producto>> GetProductos()
         {
-            var productos = await _context.Producto.ToListAsync();
+            var productos = _productoService.ObtenerTodos();
             return Ok(productos);
         }
 
@@ -29,59 +30,49 @@ namespace TransportesBackend.Controllers
         // POST: api/Productos     //
         // ======================= //
         [HttpPost]
-        public async Task<ActionResult<Producto>> PostProducto([FromBody] Producto producto)
+        public ActionResult<Producto> PostProducto([FromBody] Producto producto)
         {
             // ModelState comprueba las Data Annotations (etiquetas) que pusiste en tu clase
             // .IsValid comprueba si los datos cumplen las reglas de anotación
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (await _context.Producto.AnyAsync(p => p.Nombre == producto.Nombre))
+            if (_productoService.ExisteNombre(producto.Nombre))
+            {
                 return BadRequest(new { mensaje = "Ya existe un producto con este nombre." });
+            }
 
-            _context.Producto.Add(producto);
-            await _context.SaveChangesAsync();
-
-            return Ok(producto);
+            var nuevoProducto = _productoService.Crear(producto);
+            return Ok(nuevoProducto);
         }
 
         // ======================== //
         // PUT: api/Productos/{id}  //
         // ======================== //
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProducto(string id, [FromBody] Producto productoActualizado)
+        public ActionResult<Producto> PutProducto(string id, [FromBody] Producto productoActualizado)
         {
-            // ModelState comprueba las Data Annotations (etiquetas) que pusiste en tu clase
-            // .IsValid comprueba si los datos cumplen las reglas de anotación
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var producto = await _context.Producto.FindAsync(id);
-            if (producto == null) return NotFound();
-
-            if (await _context.Producto.AnyAsync(p => p.Nombre == productoActualizado.Nombre && p.Id != id))
+            if (_productoService.ExisteNombre(productoActualizado.Nombre, id))
+            {
                 return BadRequest(new { mensaje = "Otro producto ya usa este nombre." });
+            }
 
-            producto.Nombre = productoActualizado.Nombre;
-            producto.Descripcion = productoActualizado.Descripcion;
-            producto.PesoUnitario = productoActualizado.PesoUnitario;
-            producto.VolumenUnitario = productoActualizado.VolumenUnitario;
+            var actualizado = _productoService.Actualizar(id, productoActualizado);
+            if (actualizado == null) return NotFound(new { mensaje = "El producto no existe o fue eliminado." });
 
-            await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok(actualizado);
         }
 
         // =========================== //
         // DELETE: api/Productos/{id}  //
         // =========================== //
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProducto(string id)
+        public IActionResult DeleteProducto(string id)
         {
-            var producto = await _context.Producto.FindAsync(id);
-            if (producto == null) return NotFound();
+            var eliminado = _productoService.Eliminar(id);
+            if (!eliminado) return NotFound();
 
-            // SOFT DELETE: Marcamos la baja lógica para mantener historial.
-            producto.DeletedAt = System.DateTime.UtcNow;
-            _context.Producto.Update(producto);
-            await _context.SaveChangesAsync();
             return NoContent();
         }
     }
