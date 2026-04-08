@@ -51,6 +51,8 @@ namespace TransportesBackend.Controllers
         [HttpPut("{id}")]
         public ActionResult<Producto> PutProducto(string id, [FromBody] Producto productoActualizado)
         {
+            // ModelState comprueba las Data Annotations (etiquetas) que pusiste en tu clase
+            // .IsValid comprueba si los datos cumplen las reglas de anotación
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             if (_productoService.ExisteNombre(productoActualizado.Nombre, id))

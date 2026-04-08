@@ -92,7 +92,9 @@ namespace TransportesBackend
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+                // OBLIGATORIO: Para que Angular reciba las propiedades en minúsculas (camelCase)
                 options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                // Opcional pero recomendado: Para que acepte mayúsculas o minúsculas al recibir datos
                 options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
             });
 

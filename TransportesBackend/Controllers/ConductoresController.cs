@@ -51,6 +51,8 @@ namespace TransportesBackend.Controllers
         [HttpPut("{id}")]
         public ActionResult<Conductor> PutConductor(string id, [FromBody] Conductor conductorActualizado)
         {
+            // ModelState comprueba las Data Annotations (etiquetas) que pusiste en tu clase
+            // .IsValid comprueba si los datos cumplen las reglas de anotación
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             if (_conductorService.ExisteDni(conductorActualizado.Dni, id))
