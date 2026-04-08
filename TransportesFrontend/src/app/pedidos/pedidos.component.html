@@ -1,131 +1,253 @@
-<div class="contenedor">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <h1 style="margin: 0">🛒 Gestión de Pedidos</h1>
-    <button class="btn-crear" (click)="mostrarFormulario = !mostrarFormulario">
-      {{ mostrarFormulario ? "❌ Cancelar" : "➕ Nuevo Pedido" }}
+<div class="content-area">
+  <h2 class="header-6" style="padding: 1rem; margin-top: 0; border-radius: 4px">
+    Gestión de Pedidos
+  </h2>
+
+  <div style="margin: 1rem 0">
+    <button class="btn btn-primary" (click)="abrirModal()">
+      <cds-icon shape="plus"></cds-icon> Nuevo Pedido
     </button>
   </div>
 
-  <div class="tarjeta form-tarjeta" *ngIf="mostrarFormulario">
-    <h2 style="margin-top: 0">📦 Crear Pedido</h2>
+  <clr-datagrid [clrDgLoading]="cargando">
+    <clr-dg-column>ID Pedido</clr-dg-column>
+    <clr-dg-column>Cliente</clr-dg-column>
+    <clr-dg-column>Fecha</clr-dg-column>
+    <clr-dg-column>Estado</clr-dg-column>
+    <clr-dg-column>Acciones</clr-dg-column>
 
-    <form [formGroup]="pedidoForm" (ngSubmit)="guardarPedido()">
-        
-      <!-- Cabecera del pedido -->
-      <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-        <div style="flex: 2">
-          <label><strong>Cliente Asociado</strong></label><br>
-          <select formControlName="clienteId" style="width: 100%; margin-top: 5px;">
-            <option value="" disabled selected>-- Selecciona un Cliente --</option>
-            <option *ngFor="let cli of clientes" [value]="cli.id">{{ cli.nombre }}</option>
-          </select>
-        </div>
-        
-        <div style="flex: 1">
-          <label><strong>Fecha (Opcional)</strong></label><br>
-          <input type="date" formControlName="fechaPedido" style="width: 100%; margin-top: 5px; height: 43px;" />
-        </div>
-      </div>
+    <clr-dg-placeholder
+      >No hay pedidos registrados en el sistema.</clr-dg-placeholder
+    >
 
-      <hr style="margin: 20px 0" />
-      
-      <!-- Detalle (FormArray) -->
-      <h3>Detalle de Productos</h3>
-      <div formArrayName="pedidoDetalles">
-        <div 
-          *ngFor="let det of pedidoDetalles.controls; let i = index" 
-          [formGroupName]="i" 
-          class="fila-producto"
-          style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;"
+    <clr-dg-row
+      *clrDgItems="let pedido of pedidos"
+      [clrDgItem]="pedido"
+      [class.fila-eliminada]="pedido.deletedAt"
+    >
+      <clr-dg-cell>{{ pedido.id | slice: 0 : 8 }}...</clr-dg-cell>
+
+      <clr-dg-cell>{{
+        pedido.cliente?.nombre || "Cliente Desconocido"
+      }}</clr-dg-cell>
+
+      <clr-dg-cell>{{
+        pedido.fechaPedido | date: "dd/MM/yyyy HH:mm"
+      }}</clr-dg-cell>
+
+      <clr-dg-cell>
+        <span *ngIf="pedido.deletedAt" class="label label-danger">
+          Eliminado
+        </span>
+
+        <span
+          *ngIf="!pedido.deletedAt"
+          class="label"
+          [ngClass]="{
+            'label-success': pedido.estado === 'Entregado',
+            'label-warning': pedido.estado === 'Pendiente',
+            'label-info': pedido.estado === 'En Tránsito',
+          }"
         >
-          <!-- Selector de producto -->
-          <select formControlName="productoId" style="flex: 3">
-            <option value="" disabled selected>-- Elige Producto --</option>
-            <option *ngFor="let prod of productos" [value]="prod.id">
-              {{ prod.nombre }} ({{ prod.precioUnitario }} €)
-            </option>
-          </select>
+          {{ pedido.estado }}
+        </span>
+      </clr-dg-cell>
 
-          <!-- Cantidad -->
-          <input 
-            type="number" 
-            formControlName="cantidad" 
-            min="1" 
-            placeholder="Cant." 
-            style="flex: 1; max-width: 100px;" 
-          />
-
-          <!-- Botón Borrar fila -->
-          <button type="button" class="btn-eliminar" style="padding: 0.60rem 1rem;" (click)="eliminarProducto(i)" title="Quitar producto">
-            ❌
+      <clr-dg-cell>
+        <ng-container *ngIf="!pedido.deletedAt">
+          <button
+            class="btn btn-sm btn-link"
+            (click)="cambiarEstado(pedido.id, 'Entregado')"
+          >
+            Entregar
           </button>
-        </div>
+          <button
+            class="btn btn-sm btn-link"
+            (click)="eliminarPedido(pedido.id)"
+          >
+            Eliminar
+          </button>
+        </ng-container>
+
+        <span *ngIf="pedido.deletedAt" class="texto-bloqueado">
+          <cds-icon shape="ban"></cds-icon> Bloqueado
+        </span>
+      </clr-dg-cell>
+    </clr-dg-row>
+
+    <clr-dg-footer>
+      <clr-dg-pagination #pagination [clrDgPageSize]="10">
+        <clr-dg-page-size [clrPageSizeOptions]="[10, 20, 50, 100]"
+          >Pedidos por página</clr-dg-page-size
+        >
+        {{ pagination.firstItem + 1 }} - {{ pagination.lastItem + 1 }} de
+        {{ pagination.totalItems }} pedidos
+      </clr-dg-pagination>
+    </clr-dg-footer>
+  </clr-datagrid>
+</div>
+
+<clr-modal [(clrModalOpen)]="mostrarModal" [clrModalSize]="'lg'">
+  <h3 class="modal-title" style="color: #fff; font-weight: 600">
+    Crear Nuevo Pedido
+  </h3>
+
+  <div class="modal-body">
+    <form clrForm>
+      <clr-select-container>
+        <label style="color: #ccc; font-weight: bold">Cliente Asignado</label>
+        <select
+          clrSelect
+          name="cliente"
+          [(ngModel)]="nuevoPedido.clienteId"
+          required
+          style="
+            background-color: #121212;
+            color: #fff;
+            border-bottom: 1px solid #555;
+          "
+        >
+          <option value="" disabled>-- Selecciona un Cliente --</option>
+          <option *ngFor="let cliente of clientes" [value]="cliente.id">
+            {{ cliente.nombre }}
+          </option>
+        </select>
+      </clr-select-container>
+    </form>
+
+    <hr style="margin: 2rem 0; border-color: #333" />
+
+    <h4
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        color: #eee;
+      "
+    >
+      Líneas de Producto
+      <button
+        type="button"
+        class="btn btn-sm"
+        style="
+          background-color: #333;
+          color: #fff;
+          border: 1px solid #555;
+          box-shadow: none;
+          margin: 0;
+        "
+        (click)="agregarLineaDetalle()"
+      >
+        <cds-icon shape="plus" style="fill: #fff"></cds-icon> Añadir Fila
+      </button>
+    </h4>
+
+    <div
+      *ngFor="let detalle of nuevoPedido.pedidoDetalles; let i = index"
+      style="
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-end;
+        margin-bottom: 1rem;
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+        padding: 1.2rem 1.5rem;
+        border-radius: 6px;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+      "
+    >
+      <div style="flex-grow: 1">
+        <label
+          style="
+            font-size: 0.7rem;
+            margin-bottom: 0.4rem;
+            display: block;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          "
+          >Producto</label
+        >
+        <select
+          class="clr-select"
+          style="
+            width: 100%;
+            background-color: #121212;
+            color: #fff;
+            border-bottom: 1px solid #555;
+          "
+          [name]="'prod' + i"
+          [(ngModel)]="detalle.productoId"
+        >
+          <option value="" disabled>-- Elige producto --</option>
+          <option *ngFor="let producto of productos" [value]="producto.id">
+            {{ producto.nombre }}
+          </option>
+        </select>
       </div>
 
-      <button type="button" class="btn-nueva-dir" style="margin-top: 10px" (click)="agregarProducto()">
-        ➕ Añadir otro producto
-      </button>
-
-      <div class="botones-form" style="margin-top: 25px;">
-        <button
-          type="submit"
-          class="btn-crear"
-          style="width: 100%; font-size: 1.1rem; padding: 1rem;"
-          [disabled]="pedidoForm.invalid"
-          [class.btn-deshabilitado]="pedidoForm.invalid"
+      <div style="width: 100px">
+        <label
+          style="
+            font-size: 0.7rem;
+            margin-bottom: 0.4rem;
+            display: block;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          "
+          >Cantidad</label
         >
-          ✅ Registrar Pedido de Compra
+        <input
+          type="number"
+          class="clr-input"
+          style="
+            width: 100%;
+            background-color: #121212;
+            color: #fff;
+            border-bottom: 1px solid #555;
+          "
+          min="1"
+          [name]="'cant' + i"
+          [(ngModel)]="detalle.cantidad"
+        />
+      </div>
+
+      <div style="padding-bottom: 2px">
+        <button
+          type="button"
+          class="btn btn-sm btn-danger btn-icon"
+          style="margin: 0; box-shadow: none"
+          (click)="eliminarLineaDetalle(i)"
+          title="Eliminar línea"
+        >
+          <cds-icon shape="trash" style="fill: #fff"></cds-icon>
         </button>
       </div>
-
-    </form>
-  </div>
-
-  <div *ngIf="pedidos.length === 0" class="cargando">
-    <p>⏳ Cargando historial de pedidos...</p>
-  </div>
-
-  <div class="lista-clientes">
-    <div *ngFor="let pedido of pedidos" class="tarjeta" style="border-left: 5px solid; padding-left: 1rem;"
-         [style.border-color]="pedido.estado === 'Pendiente' ? '#f1c40f' : (pedido.estado === 'Completado' ? '#2ecc71' : '#e74c3c')">
-      
-      <div class="tarjeta-header">
-        <h2 style="margin: 0">
-          Pedido de {{ pedido.cliente?.nombre }}
-        </h2>
-        <div>
-          <!-- Estado / Botones -->
-          <select *ngIf="pedido.estado !== 'Cancelado' && pedido.estado !== 'Completado'" 
-                  [ngModel]="pedido.estado" 
-                  (ngModelChange)="cambiarEstado(pedido.id, $event)"
-                  class="select-estado"
-                  style="margin-right: 10px;">
-            <option value="Pendiente">🟡 Pendiente</option>
-            <option value="En Preparación">🔵 En Preparación</option>
-            <option value="Completado">🟢 Completado</option>
-            <option value="Cancelado">🔴 Cancelado</option>
-          </select>
-
-          <span *ngIf="pedido.estado === 'Cancelado'" style="color: #e74c3c; font-weight: bold; margin-right: 15px;">🔴 CANCELADO</span>
-          <span *ngIf="pedido.estado === 'Completado'" style="color: #27ae60; font-weight: bold; margin-right: 15px;">🟢 COMPLETADO</span>
-
-          <button *ngIf="pedido.estado !== 'Completado'" class="btn-eliminar" (click)="eliminarPedido(pedido.id)" title="Eliminar del sistema">🗑️</button>
-        </div>
-      </div>
-
-      <p><strong>📅 Fecha:</strong> {{ pedido.fechaPedido | date:'dd/MM/yyyy' }}</p>
-      
-      <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin-top: 15px;">
-        <h4 style="margin-top: 0; color: #7f8c8d;">🛒 Contenido del Pedido:</h4>
-        <ul style="margin-bottom: 0;">
-          <li *ngFor="let det of pedido.pedidoDetalles">
-             {{ det.cantidad }}x <strong>{{ det.producto?.nombre }}</strong> 
-          </li>
-        </ul>
-      </div>
-
-      <small style="display: block; margin-top: 15px; color: #bdc3c7;">ID: {{ pedido.id }}</small>
     </div>
   </div>
 
-</div>
+  <div
+    class="modal-footer"
+    style="border-top: 1px solid #333; padding-top: 1rem"
+  >
+    <button
+      type="button"
+      class="btn"
+      style="
+        background-color: transparent;
+        color: #bbb;
+        border: 1px solid #555;
+        box-shadow: none;
+      "
+      (click)="cerrarModal()"
+    >
+      Cancelar
+    </button>
+
+    <button type="button" class="btn btn-primary" (click)="guardarPedido()">
+      Confirmar Pedido
+    </button>
+  </div>
+</clr-modal>

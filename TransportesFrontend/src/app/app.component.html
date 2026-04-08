@@ -7,9 +7,14 @@
       </a>
     </div>
     <div class="header-actions">
-      <button class="nav-link nav-icon" (click)="toggleTheme()" 
-        [title]="themeService.isDark() ? 'Modo Claro' : 'Modo Oscuro'">
-        <cds-icon [attr.shape]="themeService.isDark() ? 'sun' : 'moon'"></cds-icon>
+      <button
+        class="nav-link nav-icon"
+        (click)="toggleTheme()"
+        [title]="themeService.isDark() ? 'Modo Claro' : 'Modo Oscuro'"
+      >
+        <cds-icon
+          [attr.shape]="themeService.isDark() ? 'sun' : 'moon'"
+        ></cds-icon>
       </button>
     </div>
   </clr-header>
@@ -20,8 +25,12 @@
     </div>
 
     <clr-vertical-nav [clrVerticalNavCollapsible]="true">
-      <a clrVerticalNavLink routerLink="/" routerLinkActive="active" 
-         [routerLinkActiveOptions]="{ exact: true }">
+      <a
+        clrVerticalNavLink
+        routerLink="/"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
         <cds-icon clrVerticalNavIcon shape="home"></cds-icon>
         Inicio
       </a>
@@ -48,6 +57,10 @@
       <a clrVerticalNavLink routerLink="/fabricas" routerLinkActive="active">
         <cds-icon clrVerticalNavIcon shape="store"></cds-icon>
         Fábricas
+      </a>
+      <a clrVerticalNavLink routerLink="/pedidos" routerLinkActive="active">
+        <cds-icon clrVerticalNavIcon shape="bundle"></cds-icon>
+        Pedidos
       </a>
     </clr-vertical-nav>
   </div>

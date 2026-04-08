@@ -423,3 +423,36 @@ h1, h2, h3, h4, h5, h6, p, span, div {
   transform: scale(1.15);
   opacity: 0.8;
 }
+
+/* ===========================*/
+/* Botones Secondary/Outline  */
+/* ===========================*/
+
+/* 1. Botones Outline (Cancelar) y Secondary (Añadir Fila) */
+[cds-theme="dark"] .btn-outline, 
+[cds-theme="dark"] .btn-secondary {
+  color: #bbbbbb !important;          /* Texto gris claro */
+  border-color: #666666 !important;   /* Borde gris medio */
+  background-color: transparent !important;
+}
+
+/* 2. Efecto Hover para esos botones */
+[cds-theme="dark"] .btn-outline:hover, 
+[cds-theme="dark"] .btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important; /* Brillo sutil */
+  border-color: #ffffff !important;                      /* Borde blanco */
+  color: #ffffff !important;                             /* Texto blanco */
+}
+
+/* 3. Forzar que los iconos dentro de estos botones hereden el color gris/blanco */
+[cds-theme="dark"] .btn-outline cds-icon, 
+[cds-theme="dark"] .btn-secondary cds-icon {
+  --color: inherit !important;
+  fill: inherit !important;
+}
+
+/* 4. Asegurar que los Select e Inputs no tengan borde azul al seleccionarlos (Focus) */
+[cds-theme="dark"] .clr-select-wrapper .clr-select:focus,
+[cds-theme="dark"] .clr-input-wrapper .clr-input:focus {
+  border-bottom-color: var(--app-accent) !important; /* Tu color Naranja/Accent */
+}
