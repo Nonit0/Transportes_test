@@ -19,6 +19,21 @@ export class VehiculosComponent implements OnInit {
   camionEditando: Camion | null = null;
   mensajeError: string = '';
 
+  get camionParaForm() {
+    return this.camionEditando || this.nuevoCamion;
+  }
+
+  resetearFormulario() {
+    this.camionEditando = null;
+    this.nuevoCamion = {
+      matricula: '',
+      capacidadPeso: 0,
+      capacidadVolumen: 0,
+      activo: true
+    };
+    this.mensajeError = '';
+  }
+
   constructor(private vehiculoService: VehiculoService) {}
 
   ngOnInit(): void {

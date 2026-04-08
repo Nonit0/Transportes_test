@@ -1,25 +1,54 @@
-<nav class="navbar">
-  <div class="logo" routerLink="/">
-    <span style="font-size: 1.5rem">🏢</span> TransportesApp
-  </div>
+<clr-main-container>
+  <clr-header class="header-6">
+    <div class="branding">
+      <a routerLink="/" class="nav-link">
+        <cds-icon shape="bundle" size="36"></cds-icon>
+        <span class="title">Transportes DDBB</span>
+      </a>
+    </div>
+    <div class="header-actions">
+      <button class="nav-link nav-icon" (click)="toggleTheme()" 
+        [title]="themeService.isDark() ? 'Modo Claro' : 'Modo Oscuro'">
+        <cds-icon [attr.shape]="themeService.isDark() ? 'sun' : 'moon'"></cds-icon>
+      </button>
+    </div>
+  </clr-header>
 
-  <div class="enlaces">
-    <a
-      routerLink="/"
-      routerLinkActive="activo"
-      [routerLinkActiveOptions]="{ exact: true }"
-      >🏠 Inicio</a
-    >
-    <a routerLink="/almacenes" routerLinkActive="activo">📦 Almacenes</a>
-    <a routerLink="/vehiculos" routerLinkActive="activo">🚚 Vehículos</a>
-    <a routerLink="/productos" routerLinkActive="activo">🏷️ Productos</a>
-    <a routerLink="/conductores" routerLinkActive="activo">🧑 Conductores</a>
-    <a routerLink="/clientes" routerLinkActive="activo">👤 Clientes</a>
-    <a routerLink="/fabricas" routerLinkActive="activo">🏭 Fábricas</a>
-    <!--<a routerLink="/pedidos" routerLinkActive="activo">🛒 Pedidos</a>-->
-  </div>
-</nav>
+  <div class="content-container">
+    <div class="content-area">
+      <router-outlet></router-outlet>
+    </div>
 
-<main style="padding: 20px">
-  <router-outlet></router-outlet>
-</main>
+    <clr-vertical-nav [clrVerticalNavCollapsible]="true">
+      <a clrVerticalNavLink routerLink="/" routerLinkActive="active" 
+         [routerLinkActiveOptions]="{ exact: true }">
+        <cds-icon clrVerticalNavIcon shape="home"></cds-icon>
+        Inicio
+      </a>
+      <a clrVerticalNavLink routerLink="/almacenes" routerLinkActive="active">
+        <cds-icon clrVerticalNavIcon shape="archive"></cds-icon>
+        Almacenes
+      </a>
+      <a clrVerticalNavLink routerLink="/vehiculos" routerLinkActive="active">
+        <cds-icon clrVerticalNavIcon shape="truck"></cds-icon>
+        Vehículos
+      </a>
+      <a clrVerticalNavLink routerLink="/productos" routerLinkActive="active">
+        <cds-icon clrVerticalNavIcon shape="tags"></cds-icon>
+        Productos
+      </a>
+      <a clrVerticalNavLink routerLink="/conductores" routerLinkActive="active">
+        <cds-icon clrVerticalNavIcon shape="user"></cds-icon>
+        Conductores
+      </a>
+      <a clrVerticalNavLink routerLink="/clientes" routerLinkActive="active">
+        <cds-icon clrVerticalNavIcon shape="users"></cds-icon>
+        Clientes
+      </a>
+      <a clrVerticalNavLink routerLink="/fabricas" routerLinkActive="active">
+        <cds-icon clrVerticalNavIcon shape="store"></cds-icon>
+        Fábricas
+      </a>
+    </clr-vertical-nav>
+  </div>
+</clr-main-container>
