@@ -71,6 +71,7 @@ namespace TransportesBackend
             services.AddScoped<IDireccionService, DireccionService>();
             services.AddScoped<IFabricaService, FabricaService>();
             services.AddScoped<IProductoService, ProductoService>();
+            services.AddScoped<IPedidoService, PedidoService>();
 
             // ==========================================
             // 3. Configuración CORS
