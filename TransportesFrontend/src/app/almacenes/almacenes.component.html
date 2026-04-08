@@ -1,174 +1,126 @@
-<div class="contenedor">
-  <h1>📦 Panel de Almacenes</h1>
-
-  <div class="tarjeta form-tarjeta">
-    <h2>{{ idEdicion ? "✏️ Editar Almacén" : "➕ Nuevo Almacén" }}</h2>
-
-    <form #almacenForm="ngForm" (ngSubmit)="guardarAlmacen()">
-      <div class="grupo-inputs">
-        <input
-          type="text"
-          placeholder="Nombre (Ej: Hub Logístico Norte)"
-          name="nombre"
-          [(ngModel)]="formulario.nombre"
-          required
-        />
-
-        <div style="display: flex; gap: 10px; flex: 1">
-          <select
-            name="direccionId"
-            [(ngModel)]="formulario.direccionId"
-            required
-            style="
-              padding: 10px;
-              border-radius: 4px;
-              border: 1px solid #ccc;
-              flex: 1;
-            "
-          >
-            <option value="" disabled selected>
-              -- Selecciona una Dirección --
-            </option>
-            <option *ngFor="let dir of direcciones" [value]="dir.id">
-              {{ dir.textoMostrar }}
-            </option>
-          </select>
-
-          <button
-            type="button"
-            class="btn-nueva-dir"
-            (click)="abrirModal()"
-            title="Crear nueva dirección"
-          >
-            ➕ Nueva
-          </button>
-        </div>
-      </div>
-
-      <div class="botones-form" style="margin-top: 15px">
-        <button
-          type="submit"
-          class="btn-crear"
-          [disabled]="almacenForm.invalid"
-          [class.btn-deshabilitado]="almacenForm.invalid"
-        >
-          {{ idEdicion ? "Actualizar Almacén" : "Guardar Almacén" }}
-        </button>
-        <button
-          type="button"
-          class="btn-cancelar"
-          *ngIf="idEdicion"
-          (click)="resetearFormulario()"
-        >
-          Cancelar Edición
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <hr />
-
-  <div *ngIf="almacenes.length === 0" class="cargando">
-    <p>⏳ Cargando almacenes...</p>
-  </div>
-
-  <div class="grid-almacenes">
-    <div *ngFor="let almacen of almacenes" class="tarjeta">
-      <div class="tarjeta-header">
-        <h2 style="margin: 0">{{ almacen.nombre }}</h2>
-
-        <div>
-          <button
-            class="btn-editar"
-            (click)="cargarParaEdicion(almacen)"
-            title="Editar Almacén"
-          >
-            ✏️
-          </button>
-          <button
-            class="btn-eliminar"
-            (click)="eliminarAlmacen(almacen.id, almacen.nombre)"
-            title="Eliminar Almacén"
-          >
-            🗑️
-          </button>
-        </div>
-      </div>
-
-      <p><strong>📍 Dirección:</strong> {{ almacen.direccion?.calle }} - {{ almacen.direccion?.ciudad }} ({{ almacen.direccion?.cp }})</p>
-      <small>ID Interno: {{ almacen.id }}</small>
+<div class="content-area">
+  <div class="header-area">
+    <h1>📦 Gestión de Almacenes</h1>
+    <div class="action-buttons">
+      <button class="btn btn-outline" (click)="resetearFormulario()" *ngIf="idEdicion">
+        Limpiar Formulario
+      </button>
     </div>
   </div>
 
-  <div class="modal-overlay" *ngIf="mostrarModal">
-    <div class="modal-content">
-      <h3 style="margin-top: 0">📍 Nueva Dirección</h3>
-
-      <form #dirForm="ngForm" (ngSubmit)="guardarDireccion()">
-        <div style="display: flex; flex-direction: column; gap: 10px">
-          <input
-            type="text"
-            placeholder="Calle y número (Ej: Calle Mayor 12)"
-            name="calle"
-            [(ngModel)]="nuevaDireccion.calle"
-            required
-            style="padding: 10px; width: 100%; box-sizing: border-box"
-          />
-
-          <div style="display: flex; gap: 10px">
-            <input
-              type="text"
-              placeholder="Ciudad"
-              name="ciudad"
-              [(ngModel)]="nuevaDireccion.ciudad"
-              required
-              style="padding: 10px; flex: 1"
-            />
-            <input
-              type="text"
-              placeholder="CP"
-              name="cp"
-              [(ngModel)]="nuevaDireccion.cp"
-              required
-              pattern="^[0-9]+$"
-              style="padding: 10px; width: 100px"
-            />
-          </div>
-
-          <div style="display: flex; gap: 10px">
-            <input
-              type="text"
-              placeholder="Provincia"
-              name="provincia"
-              [(ngModel)]="nuevaDireccion.provincia"
-              required
-              style="padding: 10px; flex: 1"
-            />
-            <input
-              type="text"
-              placeholder="País"
-              name="pais"
-              [(ngModel)]="nuevaDireccion.pais"
-              required
-              style="padding: 10px; flex: 1"
-            />
-          </div>
+  <div class="clr-row">
+    <!-- LADO IZQUIERDO: FORMULARIO -->
+    <div class="clr-col-lg-4 clr-col-12">
+      <div class="card">
+        <div class="card-header">
+           {{ idEdicion ? '✏️ Editar Registro' : '➕ Nuevo Almacén' }}
         </div>
+        <div class="card-block">
+          <form clrForm #almacenForm="ngForm" (ngSubmit)="guardarAlmacen()">
+            <clr-input-container>
+              <label>Nombre</label>
+              <input clrInput type="text" name="nombre" [(ngModel)]="formulario.nombre" required placeholder="Nombre del almacén" />
+              <clr-control-error>El nombre es obligatorio</clr-control-error>
+            </clr-input-container>
 
-        <div class="botones-form" style="margin-top: 20px">
-          <button
-            type="submit"
-            class="btn-crear"
-            [disabled]="dirForm.invalid"
-            [class.btn-deshabilitado]="dirForm.invalid"
-          >
-            Guardar Dirección
-          </button>
-          <button type="button" class="btn-cancelar" (click)="cerrarModal()">
-            Cancelar
-          </button>
+            <clr-select-container>
+              <label>Dirección</label>
+              <select clrSelect name="direccionId" [(ngModel)]="formulario.direccionId" required>
+                <option value="" disabled selected>Selecciona una ubicación</option>
+                <option *ngFor="let dir of direcciones" [value]="dir.id">{{ dir.textoMostrar }}</option>
+              </select>
+              <clr-control-helper>
+                <button type="button" class="btn btn-link btn-sm" (click)="abrirModal()">
+                  + Nueva Dirección
+                </button>
+              </clr-control-helper>
+              <clr-control-error>Debes seleccionar una dirección</clr-control-error>
+            </clr-select-container>
+
+            <div class="card-footer" style="padding: 1rem 0 0 0">
+              <button type="submit" class="btn btn-primary" [disabled]="almacenForm.invalid">
+                {{ idEdicion ? 'Actualizar' : 'Guardar' }}
+              </button>
+              <button type="button" class="btn btn-outline" (click)="resetearFormulario()" *ngIf="idEdicion">
+                Cancelar
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
+    </div>
+
+    <!-- LADO DERECHO: LISTADO -->
+    <div class="clr-col-lg-8 clr-col-12">
+      <clr-datagrid [clrDgLoading]="almacenes.length === 0 && !idEdicion">
+        <clr-dg-column [clrDgField]="'nombre'">Nombre</clr-dg-column>
+        <clr-dg-column>Ubicación</clr-dg-column>
+        <clr-dg-placeholder>No hay almacenes registrados</clr-dg-placeholder>
+
+        <clr-dg-row *clrDgItems="let almacen of almacenes" [clrDgItem]="almacen">
+          <clr-dg-action-overflow>
+            <button class="action-item" (click)="cargarParaEdicion(almacen)">Editar</button>
+            <button class="action-item" (click)="eliminarAlmacen(almacen.id, almacen.nombre)">Eliminar</button>
+          </clr-dg-action-overflow>
+
+          <clr-dg-cell>{{almacen.nombre}}</clr-dg-cell>
+          <clr-dg-cell>
+             <clr-icon shape="map-marker"></clr-icon> 
+             {{almacen.direccion?.calle}}, {{almacen.direccion?.ciudad}}
+          </clr-dg-cell>
+        </clr-dg-row>
+
+        <clr-dg-footer>
+          {{almacenes.length}} almacenes en total
+        </clr-dg-footer>
+      </clr-datagrid>
     </div>
   </div>
 </div>
+
+<!-- MODAL DE DIRECCIONES -->
+<clr-modal [(clrModalOpen)]="mostrarModal" [clrModalSize]="'md'">
+  <h3 class="modal-title">📍 Nueva Dirección</h3>
+  <div class="modal-body">
+    <form clrForm #dirForm="ngForm">
+      <clr-input-container>
+        <label>Calle y Número</label>
+        <input clrInput type="text" name="calle" [(ngModel)]="nuevaDireccion.calle" required placeholder="Ej: Calle Gran Vía 1" />
+      </clr-input-container>
+
+      <div class="clr-row">
+        <div class="clr-col-8">
+          <clr-input-container>
+            <label>Ciudad</label>
+            <input clrInput type="text" name="ciudad" [(ngModel)]="nuevaDireccion.ciudad" required />
+          </clr-input-container>
+        </div>
+        <div class="clr-col-4">
+          <clr-input-container>
+            <label>CP</label>
+            <input clrInput type="text" name="cp" [(ngModel)]="nuevaDireccion.cp" required pattern="^[0-9]+$" />
+          </clr-input-container>
+        </div>
+      </div>
+
+      <div class="clr-row">
+        <div class="clr-col-6">
+          <clr-input-container>
+            <label>Provincia</label>
+            <input clrInput type="text" name="provincia" [(ngModel)]="nuevaDireccion.provincia" required />
+          </clr-input-container>
+        </div>
+        <div class="clr-col-6">
+          <clr-input-container>
+            <label>País</label>
+            <input clrInput type="text" name="pais" [(ngModel)]="nuevaDireccion.pais" required />
+          </clr-input-container>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="cerrarModal()">Cancelar</button>
+    <button type="button" class="btn btn-primary" (click)="guardarDireccion()" [disabled]="dirForm.invalid">Guardar</button>
+  </div>
+</clr-modal>

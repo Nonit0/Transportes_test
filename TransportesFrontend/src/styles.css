@@ -1,1 +1,425 @@
-/* You can add global styles to this file, and also import other style files */
+/* Reset visual para el modo oscuro/claro dinámico y paleta corporativa INDUSTRIAL */
+:root {
+  --app-bg: #ffffff;
+  --app-text: #0e1217;
+  --app-header-primary: #930000;
+  --app-primary: #be1700;
+  --app-danger: #740000;
+  --app-accent: #924600;
+  --app-hover: #812b00;
+  --app-neutral-bg: #1a1a1a;
+
+  /* Sobrescribir variables de Clarity (Des-azular) */
+  --clr-header-bg-color: var(--app-header-primary);
+  --clr-nav-background-color: var(--app-neutral-bg);
+  --clr-vertical-nav-bg-color: var(--app-neutral-bg);
+  --cds-global-color-primary-base: var(--app-primary);
+  --cds-alias-status-danger: var(--app-danger);
+  --clr-global-selection-color: var(--app-accent);
+}
+
+[cds-theme="dark"] {
+  --app-bg: #121212; /* Gris carbón neutro profundo */
+  --app-text: #ffffff;
+  --app-card-bg: #1e1e1e;
+}
+
+/* Anillo de enfoque industrial (Focus) */
+*:focus {
+  outline-color: var(--app-accent) !important;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: var(--cds-global-typography-font-family, sans-serif);
+}
+
+/* Forzar legibilidad en todos los niveles */
+h1, h2, h3, h4, h5, h6, p, span, div {
+  color: inherit !important;
+}
+
+/* Forzar que el contenedor de contenido de Clarity Angular herede el color */
+.content-container {
+  background-color: var(--app-bg) !important;
+}
+
+.content-area {
+  background-color: var(--app-bg) !important;
+  color: var(--app-text) !important;
+}
+
+/* Estabilización de los Datagrids de Clarity Angular en modo oscuro (Limpieza Total) */
+[cds-theme="dark"] .datagrid {
+  background-color: #121212 !important;
+  border: 1px solid #333333 !important;
+}
+
+[cds-theme="dark"] .datagrid-header,
+[cds-theme="dark"] .datagrid-column,
+[cds-theme="dark"] .datagrid-column-title {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #333333 !important;
+}
+
+[cds-theme="dark"] .datagrid-row,
+[cds-theme="dark"] .datagrid-cell {
+  background-color: #121212 !important;
+  color: #e0e0e0 !important;
+  border-bottom: 1px solid #222222 !important;
+}
+
+[cds-theme="dark"] .datagrid-row:hover .datagrid-cell {
+  background-color: #1a1a1a !important;
+}
+
+/* 🃏 Tarjetas (Cards) Industriales */
+[cds-theme="dark"] .card {
+  background-color: #1e1e1e !important;
+  border: 1px solid #333333 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6) !important;
+}
+
+[cds-theme="dark"] .card-header,
+[cds-theme="dark"] .card-footer {
+  background-color: #1a1a1a !important;
+  border-bottom: 1px solid #333333 !important;
+  border-top: 1px solid #333333 !important;
+  color: #ffffff !important;
+}
+
+[cds-theme="dark"] .card-block {
+  background-color: #1e1e1e !important;
+  color: #e0e0e0 !important;
+}
+
+/* Forzar color de cabecera dinámico corporativo */
+.header-6 {
+  background-color: var(--app-header-primary) !important;
+  border-bottom: 2px solid var(--app-danger) !important;
+  transition: background-color 0.3s ease;
+}
+
+[cds-theme="light"] .header-6 {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #dddddd !important;
+}
+
+/* 🧭 Navegación lateral personalizada (Limpieza Total de Azules) */
+.clr-vertical-nav {
+  background-color: #1a1a1a !important;
+  border-right: 1px solid #222222 !important;
+}
+
+.clr-vertical-nav .nav-link:hover {
+  background-color: rgba(147, 0, 0, 0.15) !important; /* Rojo traslúcido suave en hover */
+  color: #ffffff !important;
+}
+
+[cds-theme="light"] .clr-vertical-nav .nav-link:hover {
+  background-color: rgba(147, 0, 0, 0.1) !important;
+  color: #111111 !important;
+}
+
+/* 🧭 Navegación lateral (Neutralización Absoluta de Variables) */
+.clr-vertical-nav {
+  --clr-vertical-nav-active-background-color: var(--app-accent) !important;
+  --clr-vertical-nav-active-box-shadow-color: var(--app-primary) !important;
+  --clr-vertical-nav-hover-background-color: rgba(147, 0, 0, 0.1) !important;
+  background-color: #1a1a1a !important;
+  border-right: 1px solid #222222 !important;
+}
+
+/* ========================================================= */
+/* 🧭 NAVEGACIÓN LATERAL: ESTADO ACTIVO (SIN FONDO NARANJA) */
+/* ========================================================= */
+
+.clr-vertical-nav .nav-link.active,
+.clr-vertical-nav .nav-link.active::before,
+.clr-vertical-nav a.active {
+  background-color: transparent !important; /* Quitamos el fondo naranja */
+  box-shadow: inset 0.25rem 0 0 0 var(--app-primary) !important; /* Mantenemos la franja roja industrial */
+  border-left: 0 !important;
+}
+
+/* 🌗 Le damos un sombreado MUY sutil para que destaque sobre los demás menús */
+[cds-theme="dark"] .clr-vertical-nav .nav-link.active,
+[cds-theme="dark"] .clr-vertical-nav a.active {
+  background-color: rgba(255, 255, 255, 0.05) !important; 
+}
+
+[cds-theme="light"] .clr-vertical-nav .nav-link.active,
+[cds-theme="light"] .clr-vertical-nav a.active {
+  background-color: rgba(0, 0, 0, 0.04) !important; 
+}
+
+/* 🎯 Forzamos que texto e icono respeten el modo oscuro/claro sin conflictos */
+[cds-theme="dark"] .clr-vertical-nav .nav-link.active,
+[cds-theme="dark"] .clr-vertical-nav .nav-link.active .nav-text,
+[cds-theme="dark"] .clr-vertical-nav a.active,
+[cds-theme="dark"] .clr-vertical-nav a.active .nav-text,
+[cds-theme="dark"] .clr-vertical-nav .nav-link.active cds-icon {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+[cds-theme="light"] .clr-vertical-nav .nav-link.active,
+[cds-theme="light"] .clr-vertical-nav .nav-link.active .nav-text,
+[cds-theme="light"] .clr-vertical-nav a.active,
+[cds-theme="light"] .clr-vertical-nav a.active .nav-text,
+[cds-theme="light"] .clr-vertical-nav .nav-link.active cds-icon {
+  color: #111111 !important;
+  fill: #111111 !important;
+}
+
+/* Forzar que los iconos de la opción activa sean blancos/negros según el tema */
+.clr-vertical-nav .nav-link.active cds-icon,
+.clr-vertical-nav .nav-link.active clr-icon {
+  --color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+[cds-theme="light"] .clr-vertical-nav .nav-link.active cds-icon,
+[cds-theme="light"] .clr-vertical-nav .nav-link.active clr-icon {
+  --color: #111111 !important;
+  fill: #111111 !important;
+}
+
+/* 🔘 Botones Corporativos */
+.btn-primary {
+  background-color: var(--app-primary) !important;
+  border-color: var(--app-primary) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--app-hover) !important;
+  border-color: var(--app-hover) !important;
+}
+
+.btn-danger {
+  background-color: var(--app-danger) !important;
+  border-color: var(--app-danger) !important;
+}
+
+.btn-danger:hover {
+  opacity: 0.8 !important;
+}
+
+/* 📄 Paginación y Pie de Datagrid Industrial (Limpieza Final) */
+[cds-theme="dark"] .datagrid-pagination,
+[cds-theme="dark"] .datagrid-footer {
+  background-color: #1a1a1a !important;
+  border-top: 1px solid #333333 !important;
+  color: #bbbbbb !important;
+}
+
+[cds-theme="dark"] .datagrid-page-list .pagination-list .pagination-btn {
+  color: #ffffff !important;
+}
+
+[cds-theme="dark"] .pagination-btn.active {
+  background-color: var(--app-accent) !important;
+}
+
+/* 🏷️ Etiquetas de Estado (Labels) Industriales */
+.label-success, .label-info, .label-warning {
+  background-color: #333333 !important;
+  color: #ffffff !important;
+  border: 1px solid #444444 !important;
+}
+
+.label-danger {
+  background-color: var(--app-danger) !important;
+  border-color: var(--app-danger) !important;
+}
+
+/* 📝 Campos de Formulario (Inputs/Selects) Industriales */
+[cds-theme="dark"] .clr-input,
+[cds-theme="dark"] .clr-select,
+[cds-theme="dark"] .clr-textarea {
+  background-color: #1a1a1a !important;
+  border-bottom-color: #444444 !important;
+  color: #ffffff !important;
+}
+
+[cds-theme="dark"] .clr-input:focus,
+[cds-theme="dark"] .clr-select:focus,
+[cds-theme="dark"] .clr-textarea:focus {
+  border-bottom-color: var(--app-accent) !important;
+}
+
+/* 🏗️ Modales (Ventanas Emergentes) Industriales */
+[cds-theme="dark"] .modal-content {
+  background-color: #1e1e1e !important;
+  border: 1px solid #333333 !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.9) !important;
+}
+
+[cds-theme="dark"] .modal-header,
+[cds-theme="dark"] .modal-footer {
+  background-color: #1a1a1a !important;
+  border-bottom: 1px solid #333333 !important;
+  border-top: 1px solid #333333 !important;
+}
+
+[cds-theme="dark"] .modal-title {
+  color: #ffffff !important;
+}
+
+[cds-theme="dark"] .modal-body {
+  color: #e0e0e0 !important;
+}
+
+/* 🔘 Menús Desplegables (Action Overflow) */
+[cds-theme="dark"] .action-overflow {
+  background-color: #1a1a1a !important;
+  border-color: #333333 !important;
+}
+
+[cds-theme="dark"] .action-item {
+  color: #ffffff !important;
+}
+
+[cds-theme="dark"] .action-item:hover {
+  background-color: var(--app-hover) !important;
+}
+
+/* 🔘 Botones de Enlace (Links) Industriales */
+.btn-link, .btn-inline, .btn-link-stack {
+  color: var(--app-accent) !important;
+  text-decoration: none !important;
+}
+
+.btn-link:hover, .btn-inline:hover {
+  color: var(--app-hover) !important;
+  text-decoration: underline !important;
+}
+
+/* 🔍 Filtros de Datagrid Industriales (Limpieza Absoluta) */
+[cds-theme="dark"] .datagrid-filter-toggle cds-icon,
+[cds-theme="dark"] .datagrid-filter-toggle clr-icon {
+  --color: #bbbbbb !important;
+}
+
+[cds-theme="dark"] .datagrid-filter-toggle.datagrid-filter-open cds-icon,
+[cds-theme="dark"] .datagrid-filter-toggle.active cds-icon {
+  --color: var(--app-accent) !important;
+  fill: var(--app-accent) !important;
+}
+
+[cds-theme="dark"] .datagrid-filter {
+  background-color: #1a1a1a !important;
+  border: 1px solid #444444 !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.9) !important;
+}
+
+/* 🏗️ Sombras de Modales Neutras (Cero Azul) */
+[cds-theme="dark"] .modal-content {
+  box-shadow: 0 8px 32px rgba(0,0,0,1) !important;
+}
+
+/* 🏠 Soporte para Pantalla de Inicio en Modo Oscuro */
+.contenedor-inicio {
+  text-align: center;
+  padding: 2rem;
+  min-height: 80vh;
+}
+
+[cds-theme="dark"] .tarjeta-acceso {
+  background-color: #740000 !important;
+  border: 1px solid #930000 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.tarjeta-acceso {
+  background-color: #ffffff;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  padding: 2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 280px;
+}
+
+.tarjeta-acceso:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.grid-accesos {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 3rem;
+  flex-wrap: wrap;
+}
+
+/* 🔥 Visibilidad de Iconos y Branding en Cabecera */
+.branding .title {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #ffffff !important; /* Blanco por defecto (Modo Oscuro) */
+}
+
+.branding cds-icon {
+  --color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+[cds-theme="light"] .branding .title {
+  color: #000000 !important;
+}
+
+[cds-theme="light"] .branding cds-icon {
+  --color: #000000 !important;
+}
+
+/* 🧭 Navegación lateral (Contraste Modo Claro) */
+[cds-theme="light"] .clr-vertical-nav {
+  background-color: #f4f4f4 !important;
+  border-right: 1px solid #dddddd !important;
+}
+
+[cds-theme="light"] .clr-vertical-nav .nav-link {
+  color: #111111 !important;
+  font-weight: 600;
+}
+
+/* 🌗 Botón de Cambio de Tema e Indicadores (Sincronizados) */
+.header-actions .nav-link.nav-icon {
+  background-color: var(--app-primary) !important;
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+  margin-left: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+[cds-theme="light"] .header-6 {
+  background-color: #ffffff !important;
+  border-bottom: 3px solid var(--app-primary) !important; /* La barrita roja también en modo claro */
+}
+
+.header-actions .nav-link.nav-icon:hover {
+  background-color: var(--app-hover) !important;
+}
+
+.header-actions cds-icon, 
+.header-actions clr-icon {
+  --color: #ffffff !important;
+  fill: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Animación genérica para iconos y botones */
+.nav-icon {
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.320, 1.275);
+}
+.nav-icon:hover {
+  transform: scale(1.15);
+  opacity: 0.8;
+}

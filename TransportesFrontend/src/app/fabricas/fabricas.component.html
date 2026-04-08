@@ -1,131 +1,123 @@
-<div class="contenedor">
-  <h1>🏭 Gestión de Fábricas</h1>
-
-  <div class="tarjeta form-tarjeta">
-    <h2>{{ idEdicion ? "✏️ Editar Fábrica" : "➕ Nueva Fábrica" }}</h2>
-
-    <form #fabricaForm="ngForm" (ngSubmit)="guardarFabrica()">
-      <div style="display: flex; flex-wrap: wrap; gap: 10px">
-        <div style="flex: 2; min-width: 200px">
-          <input
-            type="text"
-            placeholder="Nombre de la Fábrica"
-            name="nombre"
-            [(ngModel)]="formulario.nombre"
-            required
-            style="width: 100%"
-          />
-        </div>
-      </div>
-
-      <div style="display: flex; gap: 10px; margin-top: 10px">
-        <select
-          name="direccionId"
-          [(ngModel)]="formulario.direccionId"
-          required
-          style="padding: 10px; border-radius: 6px; border: 1px solid #ddd; flex: 1"
-        >
-          <option value="" disabled selected>-- Selecciona una Dirección --</option>
-          <option *ngFor="let dir of direcciones" [value]="dir.id">
-            {{ dir.textoMostrar }}
-          </option>
-        </select>
-
-        <button
-          type="button"
-          class="btn-nueva-dir"
-          (click)="abrirModal()"
-          title="Crear nueva dirección"
-        >
-          ➕ Nueva
-        </button>
-      </div>
-
-      <div class="botones-form" style="margin-top: 15px">
-        <button
-          type="submit"
-          class="btn-crear"
-          [disabled]="fabricaForm.invalid"
-          [class.btn-deshabilitado]="fabricaForm.invalid"
-        >
-          {{ idEdicion ? "Actualizar Fábrica" : "Registrar Fábrica" }}
-        </button>
-        <button
-          type="button"
-          class="btn-cancelar"
-          *ngIf="idEdicion"
-          (click)="resetearFormulario()"
-          style="margin-left: 10px"
-        >
-          Cancelar Edición
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <hr />
-
-  <div *ngIf="fabricas.length === 0" class="cargando">
-    <p>⏳ Cargando fábricas...</p>
-  </div>
-
-  <div class="lista-clientes">
-    <div *ngFor="let fabrica of fabricas" class="tarjeta">
-      <div class="tarjeta-header">
-        <h2 style="margin: 0">{{ fabrica.nombre }}</h2>
-        <div>
-          <button class="btn-editar" (click)="cargarParaEdicion(fabrica)" title="Editar">✏️</button>
-          <button class="btn-eliminar" (click)="eliminarFabrica(fabrica.id, fabrica.nombre)" title="Eliminar">🗑️</button>
-        </div>
-      </div>
-
-      <p><strong>📍 Dirección:</strong> {{ fabrica.direccion?.calle }} - {{ fabrica.direccion?.ciudad }} ({{ fabrica.direccion?.cp }})</p>
-      <small>ID Interno: {{ fabrica.id }}</small>
+<div class="content-area">
+  <div class="header-area">
+    <h1>🏭 Gestión de Fábricas</h1>
+    <div class="action-buttons">
+      <button class="btn btn-outline" (click)="resetearFormulario()" *ngIf="idEdicion">
+        Limpiar Formulario
+      </button>
     </div>
   </div>
 
-  <!-- ==========================================
-       🛸 MODAL DE DIRECCIONES
-       ========================================== -->
-  <div class="modal-overlay" *ngIf="mostrarModal">
-    <div class="modal-content">
-      <h3 style="margin-top: 0">📍 Nueva Dirección</h3>
-
-      <form #dirForm="ngForm" (ngSubmit)="guardarDireccion()">
-        <div style="display: flex; flex-direction: column; gap: 10px">
-          <input type="text" placeholder="Calle y número" name="calle"
-            [(ngModel)]="nuevaDireccion.calle" required
-            style="padding: 10px; width: 100%; box-sizing: border-box" />
-
-          <div style="display: flex; gap: 10px">
-            <input type="text" placeholder="Ciudad" name="ciudad"
-              [(ngModel)]="nuevaDireccion.ciudad" required
-              style="padding: 10px; flex: 1" />
-            <input type="text" placeholder="CP" name="cp"
-              [(ngModel)]="nuevaDireccion.cp" required pattern="^[0-9]+$"
-              style="padding: 10px; width: 100px" />
-          </div>
-
-          <div style="display: flex; gap: 10px">
-            <input type="text" placeholder="Provincia" name="provincia"
-              [(ngModel)]="nuevaDireccion.provincia" required
-              style="padding: 10px; flex: 1" />
-            <input type="text" placeholder="País" name="pais"
-              [(ngModel)]="nuevaDireccion.pais" required
-              style="padding: 10px; flex: 1" />
-          </div>
+  <div class="clr-row">
+    <!-- FORMULARIO -->
+    <div class="clr-col-lg-4 clr-col-12">
+      <div class="card">
+        <div class="card-header">
+           {{ idEdicion ? '✏️ Editar Fábrica' : '➕ Nueva Fábrica' }}
         </div>
+        <div class="card-block">
+          <form clrForm #fabricaForm="ngForm" (ngSubmit)="guardarFabrica()">
+            <clr-input-container>
+              <label>Nombre de la Fábrica</label>
+              <input clrInput type="text" name="nombre" [(ngModel)]="formulario.nombre" required placeholder="Ej: Planta de Ensamblaje A" />
+              <clr-control-error>El nombre es obligatorio</clr-control-error>
+            </clr-input-container>
 
-        <div class="botones-form" style="margin-top: 20px">
-          <button type="submit" class="btn-crear"
-            [disabled]="dirForm.invalid" [class.btn-deshabilitado]="dirForm.invalid">
-            Guardar Dirección
-          </button>
-          <button type="button" class="btn-cancelar" (click)="cerrarModal()">
-            Cancelar
-          </button>
+            <clr-select-container>
+              <label>Dirección</label>
+              <select clrSelect name="direccionId" [(ngModel)]="formulario.direccionId" required>
+                <option value="" disabled selected>Selecciona ubicación</option>
+                <option *ngFor="let dir of direcciones" [value]="dir.id">{{ dir.textoMostrar }}</option>
+              </select>
+              <clr-control-helper>
+                <button type="button" class="btn btn-link btn-sm" (click)="abrirModal()">
+                  + Nueva Dirección
+                </button>
+              </clr-control-helper>
+              <clr-control-error>La dirección es obligatoria</clr-control-error>
+            </clr-select-container>
+
+            <div class="card-footer" style="padding: 1rem 0 0 0">
+              <button type="submit" class="btn btn-primary" [disabled]="fabricaForm.invalid">
+                {{ idEdicion ? 'Actualizar' : 'Guardar' }}
+              </button>
+              <button type="button" class="btn btn-outline" (click)="resetearFormulario()" *ngIf="idEdicion">
+                Cancelar
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
+    </div>
+
+    <!-- LISTADO -->
+    <div class="clr-col-lg-8 clr-col-12">
+      <clr-datagrid [clrDgLoading]="fabricas.length === 0 && !idEdicion">
+        <clr-dg-column [clrDgField]="'nombre'">Fábrica</clr-dg-column>
+        <clr-dg-column>Ubicación</clr-dg-column>
+
+        <clr-dg-row *clrDgItems="let fabrica of fabricas" [clrDgItem]="fabrica">
+          <clr-dg-action-overflow>
+            <button class="action-item" (click)="cargarParaEdicion(fabrica)">Editar</button>
+            <button class="action-item" (click)="eliminarFabrica(fabrica.id, fabrica.nombre)">Eliminar</button>
+          </clr-dg-action-overflow>
+
+          <clr-dg-cell>{{fabrica.nombre}}</clr-dg-cell>
+          <clr-dg-cell>
+            <clr-icon shape="map-marker"></clr-icon> 
+            {{fabrica.direccion?.calle}}, {{fabrica.direccion?.ciudad}}
+          </clr-dg-cell>
+        </clr-dg-row>
+
+        <clr-dg-footer>{{fabricas.length}} fábricas registradas</clr-dg-footer>
+      </clr-datagrid>
     </div>
   </div>
 </div>
+
+<!-- MODAL DIRECCIÓN -->
+<clr-modal [(clrModalOpen)]="mostrarModal" [clrModalSize]="'md'">
+  <h3 class="modal-title">📍 Nueva Dirección</h3>
+  <div class="modal-body">
+    <form clrForm #dirForm="ngForm">
+      <clr-input-container>
+        <label>Calle y Número</label>
+        <input clrInput type="text" name="calle" [(ngModel)]="nuevaDireccion.calle" required />
+      </clr-input-container>
+
+      <div class="clr-row">
+        <div class="clr-col-8">
+          <clr-input-container>
+            <label>Ciudad</label>
+            <input clrInput type="text" name="ciudad" [(ngModel)]="nuevaDireccion.ciudad" required />
+          </clr-input-container>
+        </div>
+        <div class="clr-col-4">
+          <clr-input-container>
+            <label>CP</label>
+            <input clrInput type="text" name="cp" [(ngModel)]="nuevaDireccion.cp" required pattern="^[0-9]+$" />
+          </clr-input-container>
+        </div>
+      </div>
+
+      <div class="clr-row">
+        <div class="clr-col-6">
+          <clr-input-container>
+            <label>Provincia</label>
+            <input clrInput type="text" name="provincia" [(ngModel)]="nuevaDireccion.provincia" required />
+          </clr-input-container>
+        </div>
+        <div class="clr-col-6">
+          <clr-input-container>
+            <label>País</label>
+            <input clrInput type="text" name="pais" [(ngModel)]="nuevaDireccion.pais" required />
+          </clr-input-container>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="cerrarModal()">Cancelar</button>
+    <button type="button" class="btn btn-primary" (click)="guardarDireccion()" [disabled]="dirForm.invalid">Guardar</button>
+  </div>
+</clr-modal>

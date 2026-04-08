@@ -1,154 +1,83 @@
-<div class="contenedor">
-  <h1>🏷️ Catálogo de Productos</h1>
-
-  <div class="tarjeta form-tarjeta">
-    <h2>➕ Nuevo Producto</h2>
-    <form #prodForm="ngForm" (ngSubmit)="guardarProducto()">
-      <div
-        class="grupo-inputs"
-        style="display: flex; flex-wrap: wrap; gap: 10px"
-      >
-        <input
-          type="text"
-          placeholder="Nombre del producto"
-          name="nombre"
-          [(ngModel)]="formulario.nombre"
-          required
-          style="flex: 1; min-width: 200px"
-        />
-        <input
-          type="text"
-          placeholder="Descripción breve"
-          name="descripcion"
-          [(ngModel)]="formulario.descripcion"
-          style="flex: 2; min-width: 200px"
-        />
-      </div>
-
-      <div
-        class="grupo-inputs"
-        style="display: flex; gap: 10px; margin-top: 10px"
-      >
-        <input
-          type="number"
-          step="0.01"
-          placeholder="Peso (kg)"
-          name="peso"
-          [(ngModel)]="formulario.pesoUnitario"
-          required
-          min="0.01"
-        />
-        <input
-          type="number"
-          step="0.01"
-          placeholder="Volumen (m³)"
-          name="volumen"
-          [(ngModel)]="formulario.volumenUnitario"
-          required
-          min="0.01"
-        />
-      </div>
-
-      <button
-        type="submit"
-        class="btn-crear"
-        style="margin-top: 15px"
-        [disabled]="prodForm.invalid"
-        [class.btn-deshabilitado]="prodForm.invalid"
-      >
-        Registrar Producto
+<div class="content-area">
+  <div class="header-area">
+    <h1>🏷️ Catálogo de Productos</h1>
+    <div class="action-buttons">
+      <button class="btn btn-outline" (click)="cancelarEdicion()" *ngIf="idEdicion">
+        Limpiar Formulario
       </button>
-    </form>
+    </div>
   </div>
 
-  <hr />
+  <div class="clr-row">
+    <!-- FORMULARIO -->
+    <div class="clr-col-lg-4 clr-col-12">
+      <div class="card">
+        <div class="card-header">
+           {{ idEdicion ? '✏️ Editar Producto' : '➕ Nuevo Producto' }}
+        </div>
+        <div class="card-block">
+          <form clrForm #prodForm="ngForm" (ngSubmit)="guardarProducto()">
+            <clr-input-container>
+              <label>Nombre</label>
+              <input clrInput type="text" name="nombre" [(ngModel)]="formulario.nombre" required placeholder="Nombre del producto" />
+              <clr-control-error>Requerido</clr-control-error>
+            </clr-input-container>
 
-  <div class="tarjeta" style="overflow-x: auto">
-    <table style="width: 100%; border-collapse: collapse; text-align: left">
-      <thead>
-        <tr style="border-bottom: 2px solid #eee">
-          <th style="padding: 10px">Nombre</th>
-          <th style="padding: 10px">Descripción</th>
-          <th style="padding: 10px">Peso (kg)</th>
-          <th style="padding: 10px">Volumen (m³)</th>
-          <th style="padding: 10px">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          *ngFor="let prod of productos"
-          style="border-bottom: 1px solid #eee"
-        >
-          <ng-container *ngIf="idEdicion !== prod.id">
-            <td style="padding: 10px">
-              <strong>{{ prod.nombre }}</strong>
-            </td>
-            <td style="padding: 10px">{{ prod.descripcion }}</td>
-            <td style="padding: 10px">{{ prod.pesoUnitario }}</td>
-            <td style="padding: 10px">{{ prod.volumenUnitario }}</td>
-            <td style="padding: 10px; display: flex; gap: 5px">
-              <button class="btn-editar" (click)="activarEdicion(prod)">
-                ✏️
-              </button>
-              <button
-                class="btn-eliminar"
-                (click)="eliminarProducto(prod.id, prod.nombre)"
-              >
-                🗑️
-              </button>
-            </td>
-          </ng-container>
+            <clr-textarea-container>
+              <label>Descripción</label>
+              <textarea clrTextarea name="descripcion" [(ngModel)]="formulario.descripcion" placeholder="Opcional..."></textarea>
+            </clr-textarea-container>
 
-          <ng-container *ngIf="idEdicion === prod.id">
-            <td style="padding: 5px">
-              <input
-                type="text"
-                [(ngModel)]="productoEnEdicion.nombre"
-                style="width: 100%"
-              />
-            </td>
-            <td style="padding: 5px">
-              <input
-                type="text"
-                [(ngModel)]="productoEnEdicion.descripcion"
-                style="width: 100%"
-              />
-            </td>
-            <td style="padding: 5px">
-              <input
-                type="number"
-                step="0.01"
-                [(ngModel)]="productoEnEdicion.pesoUnitario"
-                style="width: 80px"
-              />
-            </td>
-            <td style="padding: 5px">
-              <input
-                type="number"
-                step="0.01"
-                [(ngModel)]="productoEnEdicion.volumenUnitario"
-                style="width: 80px"
-              />
-            </td>
-            <td style="padding: 5px; display: flex; gap: 5px">
-              <button
-                class="btn-crear"
-                style="padding: 5px 10px"
-                (click)="guardarEdicion(prod.id)"
-              >
-                💾
+            <div class="clr-row">
+              <div class="clr-col-6">
+                <clr-input-container>
+                  <label>Peso (kg)</label>
+                  <input clrInput type="number" step="0.01" name="peso" [(ngModel)]="formulario.pesoUnitario" required min="0.01" />
+                </clr-input-container>
+              </div>
+              <div class="clr-col-6">
+                <clr-input-container>
+                  <label>Volumen (m³)</label>
+                  <input clrInput type="number" step="0.01" name="volumen" [(ngModel)]="formulario.volumenUnitario" required min="0.01" />
+                </clr-input-container>
+              </div>
+            </div>
+
+            <div class="card-footer" style="padding: 1rem 0 0 0">
+              <button type="submit" class="btn btn-primary" [disabled]="prodForm.invalid">
+                {{ idEdicion ? 'Actualizar' : 'Guardar' }}
               </button>
-              <button
-                class="btn-cancelar"
-                style="padding: 5px 10px"
-                (click)="cancelarEdicion()"
-              >
-                ❌
+              <button type="button" class="btn btn-outline" (click)="cancelarEdicion()" *ngIf="idEdicion">
+                Cancelar
               </button>
-            </td>
-          </ng-container>
-        </tr>
-      </tbody>
-    </table>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTADO -->
+    <div class="clr-col-lg-8 clr-col-12">
+      <clr-datagrid [clrDgLoading]="productos.length === 0 && !idEdicion">
+        <clr-dg-column [clrDgField]="'nombre'">Producto</clr-dg-column>
+        <clr-dg-column>Descripción</clr-dg-column>
+        <clr-dg-column [clrDgField]="'pesoUnitario'">Peso</clr-dg-column>
+        <clr-dg-column [clrDgField]="'volumenUnitario'">Volumen</clr-dg-column>
+
+        <clr-dg-row *clrDgItems="let prod of productos" [clrDgItem]="prod">
+          <clr-dg-action-overflow>
+            <button class="action-item" (click)="activarEdicion(prod)">Editar</button>
+            <button class="action-item" (click)="eliminarProducto(prod.id, prod.nombre)">Eliminar</button>
+          </clr-dg-action-overflow>
+
+          <clr-dg-cell>{{prod.nombre}}</clr-dg-cell>
+          <clr-dg-cell>{{prod.descripcion}}</clr-dg-cell>
+          <clr-dg-cell>{{prod.pesoUnitario}} kg</clr-dg-cell>
+          <clr-dg-cell>{{prod.volumenUnitario}} m³</clr-dg-cell>
+        </clr-dg-row>
+
+        <clr-dg-footer>{{productos.length}} productos en catálogo</clr-dg-footer>
+      </clr-datagrid>
+    </div>
   </div>
 </div>

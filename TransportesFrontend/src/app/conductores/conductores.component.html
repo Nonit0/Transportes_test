@@ -1,175 +1,79 @@
-<div class="contenedor">
-  <h1>🧑‍✈️ Gestión de Conductores</h1>
-
-  <div class="tarjeta form-tarjeta">
-    <h2>{{ idEdicion ? "✏️ Editar Conductor" : "➕ Nuevo Conductor" }}</h2>
-    <form #condForm="ngForm" (ngSubmit)="guardarConductor()">
-      <div style="display: flex; flex-wrap: wrap; gap: 10px">
-        <div style="flex: 1; min-width: 140px">
-          <input
-            type="text"
-            placeholder="DNI (Ej: 12345678X)"
-            name="dni"
-            [(ngModel)]="formulario.dni"
-            required
-            pattern="^[0-9]{8}[A-Za-z]$"
-            #dniInput="ngModel"
-            style="width: 100%"
-          />
-          <small *ngIf="dniInput.invalid && dniInput.touched" class="campo-error">
-            ⚠️ Formato inválido. Debe ser 8 números + 1 letra (Ej: 12345678X)
-          </small>
-        </div>
-        <div style="flex: 1; min-width: 150px">
-          <input
-            type="text"
-            placeholder="Nombre"
-            name="nombre"
-            [(ngModel)]="formulario.nombre"
-            required
-            style="width: 100%"
-          />
-        </div>
-        <div style="flex: 2; min-width: 200px">
-          <input
-            type="text"
-            placeholder="Apellidos"
-            name="apellidos"
-            [(ngModel)]="formulario.apellidos"
-            required
-            style="width: 100%"
-          />
-        </div>
-        <div style="flex: 1; min-width: 140px">
-          <input
-            type="tel"
-            placeholder="Teléfono (Ej: 600000001)"
-            name="telefono"
-            [(ngModel)]="formulario.telefono"
-            pattern="^[0-9]+$"
-            #telInput="ngModel"
-            style="width: 100%"
-          />
-          <small *ngIf="telInput.invalid && telInput.touched" class="campo-error">
-            ⚠️ Solo se permiten números.
-          </small>
-        </div>
-      </div>
-
-      <div class="botones-form" style="margin-top: 15px">
-        <button
-          type="submit"
-          class="btn-crear"
-          [disabled]="condForm.invalid"
-          [class.btn-deshabilitado]="condForm.invalid"
-        >
-          {{ idEdicion ? "Actualizar Conductor" : "Registrar Conductor" }}
-        </button>
-        <button
-          type="button"
-          class="btn-cancelar"
-          *ngIf="idEdicion"
-          (click)="cancelarEdicion()"
-          style="margin-left: 10px"
-        >
-          Cancelar Edición
-        </button>
-      </div>
-    </form>
+<div class="content-area">
+  <div class="header-area">
+    <h1>🧑‍✈️ Gestión de Conductores</h1>
+    <div class="action-buttons">
+      <button class="btn btn-outline" (click)="cancelarEdicion()" *ngIf="idEdicion">
+        Limpiar Formulario
+      </button>
+    </div>
   </div>
 
-  <hr />
+  <div class="clr-row">
+    <!-- FORMULARIO -->
+    <div class="clr-col-lg-4 clr-col-12">
+      <div class="card">
+        <div class="card-header">
+           {{ idEdicion ? '✏️ Editar Conductor' : '➕ Nuevo Conductor' }}
+        </div>
+        <div class="card-block">
+          <form clrForm #condForm="ngForm" (ngSubmit)="guardarConductor()">
+            <clr-input-container>
+              <label>DNI</label>
+              <input clrInput type="text" name="dni" [(ngModel)]="formulario.dni" required 
+                pattern="^[0-9]{8}[A-Za-z]$" placeholder="12345678X" />
+              <clr-control-helper>8 números y 1 letra</clr-control-helper>
+              <clr-control-error>Formato de DNI inválido</clr-control-error>
+            </clr-input-container>
 
-  <div *ngIf="conductores.length === 0" class="cargando">
-    <p>⏳ Cargando conductores...</p>
-  </div>
+            <clr-input-container>
+              <label>Nombre</label>
+              <input clrInput type="text" name="nombre" [(ngModel)]="formulario.nombre" required />
+            </clr-input-container>
 
-  <div class="tarjeta" style="overflow-x: auto" *ngIf="conductores.length > 0">
-    <table style="width: 100%; border-collapse: collapse; text-align: left">
-      <thead>
-        <tr style="border-bottom: 2px solid #eee">
-          <th style="padding: 10px">DNI</th>
-          <th style="padding: 10px">Nombre</th>
-          <th style="padding: 10px">Apellidos</th>
-          <th style="padding: 10px">Teléfono</th>
-          <th style="padding: 10px">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          *ngFor="let cond of conductores"
-          style="border-bottom: 1px solid #eee"
-        >
-          <!-- MODO VISTA -->
-          <ng-container *ngIf="idEdicion !== cond.id">
-            <td style="padding: 10px">
-              <strong>{{ cond.dni }}</strong>
-            </td>
-            <td style="padding: 10px">{{ cond.nombre }}</td>
-            <td style="padding: 10px">{{ cond.apellidos }}</td>
-            <td style="padding: 10px">{{ cond.telefono }}</td>
-            <td style="padding: 10px; display: flex; gap: 5px">
-              <button class="btn-editar" (click)="activarEdicion(cond)">
-                ✏️
-              </button>
-              <button
-                class="btn-eliminar"
-                (click)="eliminarConductor(cond.id, cond.nombre + ' ' + cond.apellidos)"
-              >
-                🗑️
-              </button>
-            </td>
-          </ng-container>
+            <clr-input-container>
+              <label>Apellidos</label>
+              <input clrInput type="text" name="apellidos" [(ngModel)]="formulario.apellidos" required />
+            </clr-input-container>
 
-          <!-- MODO EDICIÓN INLINE -->
-          <ng-container *ngIf="idEdicion === cond.id">
-            <td style="padding: 5px">
-              <input
-                type="text"
-                [(ngModel)]="conductorEnEdicion.dni"
-                style="width: 100%"
-              />
-            </td>
-            <td style="padding: 5px">
-              <input
-                type="text"
-                [(ngModel)]="conductorEnEdicion.nombre"
-                style="width: 100%"
-              />
-            </td>
-            <td style="padding: 5px">
-              <input
-                type="text"
-                [(ngModel)]="conductorEnEdicion.apellidos"
-                style="width: 100%"
-              />
-            </td>
-            <td style="padding: 5px">
-              <input
-                type="tel"
-                [(ngModel)]="conductorEnEdicion.telefono"
-                style="width: 100%"
-              />
-            </td>
-            <td style="padding: 5px; display: flex; gap: 5px">
-              <button
-                class="btn-crear"
-                style="padding: 5px 10px"
-                (click)="guardarEdicion(cond.id)"
-              >
-                💾
+            <clr-input-container>
+              <label>Teléfono</label>
+              <input clrInput type="tel" name="telefono" [(ngModel)]="formulario.telefono" pattern="^[0-9]+$" />
+              <clr-control-error>Solo se permiten números</clr-control-error>
+            </clr-input-container>
+
+            <div class="card-footer" style="padding: 1rem 0 0 0">
+              <button type="submit" class="btn btn-primary" [disabled]="condForm.invalid">
+                {{ idEdicion ? 'Actualizar' : 'Guardar' }}
               </button>
-              <button
-                class="btn-cancelar"
-                style="padding: 5px 10px"
-                (click)="cancelarEdicion()"
-              >
-                ❌
+              <button type="button" class="btn btn-outline" (click)="cancelarEdicion()" *ngIf="idEdicion">
+                Cancelar
               </button>
-            </td>
-          </ng-container>
-        </tr>
-      </tbody>
-    </table>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTADO -->
+    <div class="clr-col-lg-8 clr-col-12">
+      <clr-datagrid [clrDgLoading]="conductores.length === 0 && !idEdicion">
+        <clr-dg-column [clrDgField]="'dni'">DNI</clr-dg-column>
+        <clr-dg-column [clrDgField]="'nombre'">Nombre Completo</clr-dg-column>
+        <clr-dg-column>Teléfono</clr-dg-column>
+
+        <clr-dg-row *clrDgItems="let cond of conductores" [clrDgItem]="cond">
+          <clr-dg-action-overflow>
+            <button class="action-item" (click)="activarEdicion(cond)">Editar</button>
+            <button class="action-item" (click)="eliminarConductor(cond.id, cond.nombre + ' ' + cond.apellidos)">Eliminar</button>
+          </clr-dg-action-overflow>
+
+          <clr-dg-cell>{{cond.dni}}</clr-dg-cell>
+          <clr-dg-cell>{{cond.nombre}} {{cond.apellidos}}</clr-dg-cell>
+          <clr-dg-cell>{{cond.telefono || '---'}}</clr-dg-cell>
+        </clr-dg-row>
+
+        <clr-dg-footer>{{conductores.length}} conductores registrados</clr-dg-footer>
+      </clr-datagrid>
+    </div>
   </div>
 </div>
