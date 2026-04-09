@@ -47,5 +47,7 @@ namespace TransportesBackend.Models
         public virtual ICollection<Carga> Cargas { get; set; }
         [InverseProperty(nameof(Pedido.Cliente))]
         public virtual ICollection<Pedido> Pedidos { get; set; }
+        [InverseProperty("Cliente")]
+        public virtual ICollection<Usuario> Usuario { get; set; }
     }
 }

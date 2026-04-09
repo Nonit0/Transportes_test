@@ -72,6 +72,7 @@ namespace TransportesBackend
             services.AddScoped<IFabricaService, FabricaService>();
             services.AddScoped<IProductoService, ProductoService>();
             services.AddScoped<IPedidoService, PedidoService>();
+            services.AddScoped<IAuthService, AuthService>();
 
             // ==========================================
             // 3. Configuración CORS
@@ -104,7 +105,32 @@ namespace TransportesBackend
             // ==========================================
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "TransportesBackend", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Transportes API", Version = "v1" });
+
+                /* Con esta configuracion podemos bloquear swagger para evitar peticiones
+                // 1. Definir el esquema de seguridad (JWT)
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Escribe: 'Bearer [tu_token]'"
+                });
+
+                // 2. Hacer que Swagger use ese esquema de seguridad
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                        },
+                        new string[] {}
+                    }
+                });
+                */
             });            
         }
 

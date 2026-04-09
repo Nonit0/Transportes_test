@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -29,6 +29,7 @@ namespace TransportesBackend.Models
         public virtual DbSet<Pedido> Pedido { get; set; }
         public virtual DbSet<PedidoDetalle> PedidoDetalle { get; set; }
         public virtual DbSet<Producto> Producto { get; set; }
+        public virtual DbSet<Usuario> Usuario { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -205,6 +206,19 @@ namespace TransportesBackend.Models
                 entity.Property(e => e.PesoUnitario).HasPrecision(10, 2);
 
                 entity.Property(e => e.VolumenUnitario).HasPrecision(10, 2);
+            });
+
+            modelBuilder.Entity<Usuario>(entity =>
+            {
+                entity.Property(e => e.Id).HasDefaultValueSql("uuid()");
+
+                entity.Property(e => e.Rol).HasDefaultValueSql("'1'");
+
+                entity.HasOne(d => d.Cliente)
+                    .WithMany(p => p.Usuario)
+                    .HasForeignKey(d => d.ClienteId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("fk_usuario_cliente");
             });
 
             OnModelCreatingPartial(modelBuilder);
