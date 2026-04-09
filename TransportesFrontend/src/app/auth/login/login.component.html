@@ -1,0 +1,62 @@
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="login-header">
+      <h3 class="welcome">Transportes DDBB</h3>
+      <p class="subtitle">Acceso al Sistema</p>
+    </div>
+
+    <form class="clr-form" (ngSubmit)="hacerLogin()" #loginForm="ngForm">
+      <div class="alert alert-danger" *ngIf="errorMensaje">
+        <div class="alert-items">
+          <div class="alert-item static">
+            <div class="alert-icon-wrapper">
+              <clr-icon shape="exclamation-circle"></clr-icon>
+            </div>
+            <span class="alert-text">{{ errorMensaje }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="login-fields">
+        <clr-input-container>
+          <label>Email Corporativo</label>
+          <input
+            clrInput
+            type="email"
+            name="email"
+            [(ngModel)]="credenciales.email"
+            required
+            placeholder="ejemplo@ddbb.com"
+          />
+        </clr-input-container>
+
+        <clr-password-container>
+          <label>Contraseña</label>
+          <input
+            clrPassword
+            type="password"
+            name="password"
+            [(ngModel)]="credenciales.password"
+            required
+            placeholder="Introduce tu contraseña"
+          />
+        </clr-password-container>
+      </div>
+
+      <div class="login-actions">
+        <button
+          type="submit"
+          class="btn btn-primary btn-block"
+          [disabled]="!loginForm.valid || cargando"
+        >
+          <span *ngIf="cargando" class="spinner spinner-inline"></span>
+          ENTRAR
+        </button>
+
+        <a routerLink="/registro" class="signup-link"
+          >¿No tienes cuenta? Regístrate aquí</a
+        >
+      </div>
+    </form>
+  </div>
+</div>

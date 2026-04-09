@@ -15,6 +15,9 @@ import { ConductoresComponent } from './conductores/conductores.component';
 import { ClientesComponent } from './clientes/clientes.component';
 import { FabricasComponent } from './fabricas/fabricas.component';
 import { PedidosComponent } from './pedidos/pedidos.component';
+import { LoginComponent } from './auth/login/login.component';
+import { RegistrarComponent } from './auth/registrar/registrar.component';
+
 
 @NgModule({
   declarations: [
@@ -26,7 +29,9 @@ import { PedidosComponent } from './pedidos/pedidos.component';
     ConductoresComponent,
     ClientesComponent,
     FabricasComponent,
-    PedidosComponent
+    PedidosComponent,
+    LoginComponent,
+    RegistrarComponent
   ],
   imports: [
     BrowserModule,

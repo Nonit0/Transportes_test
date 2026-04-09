@@ -1,0 +1,74 @@
+<div class="register-wrapper">
+  <div class="register-card">
+    <div class="register-header">
+      <h3 class="welcome">Transportes DDBB</h3>
+      <p class="subtitle">Registro de Nuevo Usuario</p>
+    </div>
+
+    <form class="clr-form" (ngSubmit)="hacerRegistro()" #registroForm="ngForm">
+      <div class="alert alert-danger" *ngIf="errorMensaje">
+        <div class="alert-items">
+          <div class="alert-item static">
+            <div class="alert-icon-wrapper">
+              <clr-icon shape="exclamation-circle"></clr-icon>
+            </div>
+            <span class="alert-text">{{ errorMensaje }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="register-fields">
+        <clr-input-container>
+          <label>Nombre Completo</label>
+          <input
+            clrInput
+            type="text"
+            name="nombre"
+            [(ngModel)]="nuevoUsuario.nombre"
+            required
+            placeholder="Tu nombre"
+          />
+        </clr-input-container>
+
+        <clr-input-container>
+          <label>Email Corporativo</label>
+          <input
+            clrInput
+            type="email"
+            name="email"
+            [(ngModel)]="nuevoUsuario.email"
+            required
+            placeholder="ejemplo@ddbb.com"
+          />
+        </clr-input-container>
+
+        <clr-password-container>
+          <label>Contraseña</label>
+          <input
+            clrPassword
+            type="password"
+            name="password"
+            [(ngModel)]="nuevoUsuario.password"
+            required
+            placeholder="Crea una contraseña"
+          />
+        </clr-password-container>
+      </div>
+
+      <div class="register-actions">
+        <button
+          type="submit"
+          class="btn btn-primary btn-block"
+          [disabled]="!registroForm.valid || cargando"
+        >
+          <span *ngIf="cargando" class="spinner spinner-inline"></span>
+          REGISTRARSE
+        </button>
+
+        <a routerLink="/login" class="login-link"
+          >¿Ya tienes cuenta? Inicia sesión aquí</a
+        >
+      </div>
+    </form>
+  </div>
+</div>

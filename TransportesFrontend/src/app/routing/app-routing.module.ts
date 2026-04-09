@@ -8,6 +8,8 @@ import { ConductoresComponent } from '../conductores/conductores.component';
 import { ClientesComponent } from '../clientes/clientes.component';
 import { FabricasComponent } from '../fabricas/fabricas.component';
 import { PedidosComponent } from '../pedidos/pedidos.component';
+import { LoginComponent } from '../auth/login/login.component';
+import { RegistrarComponent } from '../auth/registrar/registrar.component';
 
 const routes: Routes = [
   { path: '', component: InicioComponent }, // La ruta vacía es el Inicio
@@ -18,6 +20,8 @@ const routes: Routes = [
   { path: 'clientes', component: ClientesComponent },
   { path: 'fabricas', component: FabricasComponent },
   { path: 'pedidos', component: PedidosComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'registrar', component: RegistrarComponent },
   { path: '**', redirectTo: '', pathMatch: 'full' } // Si el usuario escribe una ruta que no existe, lo mandamos al inicio
 ];
 

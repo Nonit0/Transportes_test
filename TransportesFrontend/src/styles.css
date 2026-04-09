@@ -456,3 +456,172 @@ h1, h2, h3, h4, h5, h6, p, span, div {
 [cds-theme="dark"] .clr-input-wrapper .clr-input:focus {
   border-bottom-color: var(--app-accent) !important; /* Tu color Naranja/Accent */
 }
+
+/* ========================================================= */
+/* 🔐 ESTILOS DE AUTENTICACIÓN (LOGIN Y REGISTRO)            */
+/* ========================================================= */
+
+/* 1. Contenedor principal: Solo centrado, respetando el diseño base de la app */
+.login-wrapper, .register-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  /* Restamos aproximadamente la altura de la cabecera (60px-80px) para un centrado óptimo */
+  min-height: calc(100vh - 70px); 
+  padding: 2rem;
+  background: transparent !important; /* Mantiene el fondo general de tu web */
+}
+
+/* 2. La tarjeta contenedora (El cuadrado bien diseñado) */
+.login-card, .register-card {
+  background-color: var(--app-bg);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 400px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid #dddddd;
+  transition: all 0.3s ease;
+}
+
+[cds-theme="dark"] .login-card,
+[cds-theme="dark"] .register-card {
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* 3. Cabecera (Títulos apilados para evitar que se pisen) */
+.login-header, .register-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--app-primary); 
+}
+
+.login-header .welcome, .register-header .welcome {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--app-text); 
+}
+
+.login-header .subtitle, .register-header .subtitle {
+  margin: 0;
+  font-size: 1rem;
+  color: #666666;
+}
+
+[cds-theme="dark"] .login-header .subtitle,
+[cds-theme="dark"] .register-header .subtitle {
+  color: #aaaaaa;
+}
+
+/* 4. Reset de anchos para inputs de Clarity */
+.login-fields clr-input-container,
+.login-fields clr-password-container,
+.register-fields clr-input-container,
+.register-fields clr-password-container {
+  margin-top: 1rem;
+}
+
+.login-fields input,
+.register-fields input {
+  width: 100% !important;
+}
+
+/* Etiquetas de los campos (Labels) */
+.login-fields label,
+.register-fields label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+  color: var(--app-text);
+}
+
+/* 5. Zona de botones */
+.login-actions, .register-actions {
+  margin-top: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.login-actions .btn, .register-actions .btn {
+  margin: 0; 
+  padding: 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* 6. Enlaces inferiores (Registro / Volver al login) */
+.signup-link, .login-link {
+  text-align: center;
+  color: var(--app-accent);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.signup-link:hover, .login-link:hover {
+  color: var(--app-hover);
+  text-decoration: underline;
+}
+
+/* 7. Ajuste de Alertas de Error en Modo Oscuro */
+[cds-theme="dark"] .alert-danger {
+  background-color: rgba(116, 0, 0, 0.15) !important;
+  border: 1px solid var(--app-danger) !important;
+  color: #ffb3b3 !important;
+}
+[cds-theme="dark"] .alert-danger clr-icon { fill: #ffb3b3 !important; }
+
+
+/* ========================================================= */
+/* ☀️ AJUSTES DE COLOR ESPECÍFICOS PARA MODO CLARO           */
+/* ========================================================= */
+
+/* 1. Títulos limpios en modo claro */
+[cds-theme="light"] .login-header .welcome,
+[cds-theme="light"] .register-header .welcome {
+  color: #111111 !important; /* Negro industrial suave */
+}
+
+[cds-theme="light"] .login-header .subtitle,
+[cds-theme="light"] .register-header .subtitle {
+  color: #666666 !important; /* Gris neutro para el subtítulo */
+}
+
+/* 2. Forzar que el texto del botón primario SIEMPRE sea blanco */
+.btn-primary {
+  color: #ffffff !important;
+}
+
+/* 3. Colores de los inputs en modo claro (Línea gris, roja al enfocar) */
+[cds-theme="light"] .login-fields input,
+[cds-theme="light"] .register-fields input {
+  border-bottom-color: #cccccc !important;
+  color: #111111 !important;
+}
+
+[cds-theme="light"] .login-fields input:focus,
+[cds-theme="light"] .register-fields input:focus {
+  border-bottom-color: var(--app-primary) !important;
+}
+
+/* 4. Enlace inferior corporativo (quitar el azul/morado por defecto) */
+[cds-theme="light"] .signup-link, 
+[cds-theme="light"] .login-link {
+  color: var(--app-primary) !important; 
+}
+
+[cds-theme="light"] .signup-link:hover, 
+[cds-theme="light"] .login-link:hover {
+  color: var(--app-hover) !important;
+}
