@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, BehaviorSubject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -8,6 +8,12 @@ import { environment } from 'src/environments/environment';
 })
 export class AuthService {
   private apiUrl = environment.apiUrl + '/auth';
+  
+  // BehaviorSubject que guarda el estado de si está o no logueado
+  private loggedIn = new BehaviorSubject<boolean>(this.estaLogueado());
+
+  // Observable que los componentes pueden escuchar
+  isLoggedIn$ = this.loggedIn.asObservable();
 
   constructor(private http: HttpClient) { }
 
@@ -18,6 +24,7 @@ export class AuthService {
         // Si C# nos devuelve un token, lo guardamos en el LocalStorage
         if (respuesta && respuesta.token) {
           localStorage.setItem('token', respuesta.token);
+          this.loggedIn.next(true); // Notificamos a todos que estamos logueados
         }
       })
     );
@@ -34,6 +41,7 @@ export class AuthService {
   logout(): void {
     // Destruimos la "pulsera VIP"
     localStorage.removeItem('token');
+    this.loggedIn.next(false); // Notificamos que hemos cerrado sesión
   }
 
   // 4. COMPROBAR SI ESTÁ LOGUEADO

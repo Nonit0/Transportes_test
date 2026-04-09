@@ -7,6 +7,19 @@
       </a>
     </div>
     <div class="header-actions">
+      <!-- Botones cuando NO está logueado -->
+      <ng-container *ngIf="!(authService.isLoggedIn$ | async)">
+        <a routerLink="/login" class="nav-link nav-text">Iniciar Sesión</a>
+        <a routerLink="/registrar" class="nav-link nav-text">Registrarse</a>
+      </ng-container>
+
+      <!-- Botón cuando SÍ está logueado -->
+      <ng-container *ngIf="authService.isLoggedIn$ | async">
+        <button class="nav-link nav-icon" (click)="hacerLogout()" title="Cerrar Sesión">
+          <cds-icon shape="logout"></cds-icon>
+        </button>
+      </ng-container>
+
       <button
         class="nav-link nav-icon"
         (click)="toggleTheme()"
@@ -24,7 +37,7 @@
       <router-outlet></router-outlet>
     </div>
 
-    <clr-vertical-nav [clrVerticalNavCollapsible]="true">
+    <clr-vertical-nav *ngIf="authService.isLoggedIn$ | async" [clrVerticalNavCollapsible]="true">
       <a
         clrVerticalNavLink
         routerLink="/"
