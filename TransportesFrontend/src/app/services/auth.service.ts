@@ -54,4 +54,32 @@ export class AuthService {
   getToken(): string | null {
     return localStorage.getItem('token');
   }
+
+  // 6. DECODIFICAR EL PAYLOAD DEL TOKEN
+  private getPayload(): any {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // 7. OBTENER EL ROL DEL USUARIO
+  getRol(): string | null {
+    const payload = this.getPayload();
+    return payload ? payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || payload["role"] : null;
+  }
+
+  // 8. OBTENER EL ID DEL CLIENTE (EMPRESA)
+  getClienteId(): string | null {
+    const payload = this.getPayload();
+    return payload ? payload["ClienteId"] : null;
+  }
 }
