@@ -22,9 +22,9 @@ namespace TransportesBackend.Controllers
         // GET: api/Fabricas   //
         // =================== //
         [HttpGet]
-        public ActionResult<IEnumerable<Fabrica>> GetFabricas()
+        public ActionResult<PaginatedResponse<Fabrica>> GetFabricas([FromQuery] int? page = null, [FromQuery] int? limit = null)
         {
-            var fabricas = _fabricaService.ObtenerTodas();
+            var fabricas = _fabricaService.ObtenerTodas(page, limit);
             return Ok(fabricas);
         }
 

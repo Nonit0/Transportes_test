@@ -14,9 +14,13 @@ export class VehiculoService {
 
   constructor(private http: HttpClient) { }
 
-  getCamiones(): Observable<Camion[]> {
-    return this.http.get<any>(this.apiUrl)
-      .pipe(map(res => res.$values ? res.$values : res));
+  getCamiones(page: number = 1, limit: number = 50): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}?page=${page}&limit=${limit}`)
+      .pipe(map(res => {
+          const data = res.data ?? res;
+          const items = data.$values ? data.$values : data;
+          return { items, totalItems: res.totalItems !== undefined ? res.totalItems : items.length };
+      }));
   }
 
   createCamion(camion: CreateCamion): Observable<Camion> {

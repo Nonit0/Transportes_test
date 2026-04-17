@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { VehiculoService } from '../services/vehiculo.service';
 import { Camion, CreateCamion, UpdateCamion } from './camion/camion.model';
+import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../services/auth.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-vehiculos',
@@ -13,7 +16,8 @@ export class VehiculosComponent implements OnInit {
     matricula: '',
     capacidadPeso: 0,
     capacidadVolumen: 0,
-    activo: true
+    activo: true,
+    clienteId: ''
   };
   
   camionEditando: Camion | null = null;
@@ -29,33 +33,67 @@ export class VehiculosComponent implements OnInit {
       matricula: '',
       capacidadPeso: 0,
       capacidadVolumen: 0,
-      activo: true
+      activo: true,
+      clienteId: ''
     };
     this.mensajeError = '';
   }
 
-  constructor(private vehiculoService: VehiculoService) {}
+  isAdmin: boolean = false;
+  clientes: any[] = [];
+  private apiUrl = environment.apiUrl;
+  
+  totalItems: number = 0;
+  cargando: boolean = true;
+
+  constructor(private vehiculoService: VehiculoService, private http: HttpClient, private authService: AuthService) {
+    this.isAdmin = this.authService.getRol() === 'Administrador' || this.authService.getRol() === 'Admin';
+  }
 
   ngOnInit(): void {
     this.cargarCamiones();
+    if (this.isAdmin) this.cargarClientes();
   }
 
-  cargarCamiones(): void {
-    this.vehiculoService.getCamiones().subscribe({
-      next: (data) => {
+  cargarClientes() {
+    this.http.get<any>(`${this.apiUrl}/Clientes`)
+      .subscribe({
+        next: (res) => {
+          const responseData = res.data ?? res;
+          this.clientes = responseData.$values ? responseData.$values : responseData;
+        },
+        error: (err) => console.error('Error al cargar clientes', err)
+      });
+  }
+
+  refresh(state: any) {
+    this.cargando = true;
+    const page = state.page ? state.page.current : 1;
+    const limit = state.page ? state.page.size : 50;
+    this.cargarCamiones(page, limit);
+  }
+
+  cargarCamiones(page: number = 1, limit: number = 50): void {
+    this.vehiculoService.getCamiones(page, limit).subscribe({
+      next: (res) => {
+        const rawCamiones = res.items;
+        this.totalItems = res.totalItems;
         // Normalización para que funcione con PascalCase o camelCase
-        this.camiones = data.map((c: any) => ({
+        this.camiones = rawCamiones.map((c: any) => ({
           ...c,
           id: c.id || c.Id,
           matricula: c.matricula || c.Matricula,
           capacidadPeso: c.capacidadPeso || c.CapacidadPeso,
           capacidadVolumen: c.capacidadVolumen || c.CapacidadVolumen,
-          activo: c.activo !== undefined ? c.activo : c.Activo
+          activo: c.activo !== undefined ? c.activo : c.Activo,
+          clienteId: c.clienteId || c.ClienteId || ''
         }));
+        this.cargando = false;
       },
       error: (err) => {
         console.error('Error cargando camiones', err);
         this.mensajeError = 'No se pudieron cargar los camiones. Asegúrate de que el backend esté encendido.';
+        this.cargando = false;
       }
     });
   }
@@ -69,9 +107,8 @@ export class VehiculosComponent implements OnInit {
 
     this.vehiculoService.createCamion(this.nuevoCamion).subscribe({
       next: (creado) => {
-         // Añadimos el nuevo al principio de la lista
          this.camiones.unshift(creado); 
-         this.nuevoCamion = { matricula: '', capacidadPeso: 0, capacidadVolumen: 0, activo: true };
+         this.nuevoCamion = { matricula: '', capacidadPeso: 0, capacidadVolumen: 0, activo: true, clienteId: '' };
       },
       error: (err) => {
          if (err.error && err.error.mensaje) {

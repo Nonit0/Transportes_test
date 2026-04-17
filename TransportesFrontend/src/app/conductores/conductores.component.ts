@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { AuthService } from '../services/auth.service';
 
 export interface Conductor {
   id: string;
@@ -9,6 +10,7 @@ export interface Conductor {
   apellidos: string;
   telefono: string;
   deletedAt: string | null;
+  clienteId?: string;
 }
 
 @Component({
@@ -20,23 +22,60 @@ export class ConductoresComponent implements OnInit {
   conductores: Conductor[] = [];
 
   // Formulario de creación
-  formulario = { dni: '', nombre: '', apellidos: '', telefono: '' };
+  formulario = { dni: '', nombre: '', apellidos: '', telefono: '', clienteId: '' };
 
   // Variables para Edición Inline
   idEdicion: string | null = null;
   conductorEnEdicion: any = {};
 
   private apiUrl = environment.apiUrl;
+  isAdmin: boolean = false;
+  clientes: any[] = [];
+  
+  cargando = true;
+  totalItems = 0;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {
+    this.isAdmin = this.authService.getRol() === 'Administrador' || this.authService.getRol() === 'Admin';
+  }
 
   ngOnInit(): void {
     this.cargarConductores();
+    if (this.isAdmin) this.cargarClientes();
   }
 
-  cargarConductores() {
-    this.http.get<any>(`${this.apiUrl}/Conductores`)
-      .subscribe({ next: (data) => this.conductores = data.$values ? data.$values : data });
+  cargarClientes() {
+    this.http.get<any>(`${this.apiUrl}/Clientes`)
+      .subscribe({
+        next: (res) => {
+          const responseData = res.data ?? res;
+          this.clientes = responseData.$values ? responseData.$values : responseData;
+        },
+        error: (err) => console.error('Error al cargar clientes', err)
+      });
+  }
+
+  refresh(state: any) {
+    this.cargando = true;
+    const page = state.page ? state.page.current : 1;
+    const limit = state.page ? state.page.size : 50;
+    this.cargarConductores(page, limit);
+  }
+
+  cargarConductores(page: number = 1, limit: number = 50) {
+    this.http.get<any>(`${this.apiUrl}/Conductores?page=${page}&limit=${limit}`)
+      .subscribe({ 
+        next: (res) => {
+          const responseData = res.data ?? res;
+          this.conductores = responseData.$values ? responseData.$values : responseData;
+          this.totalItems = res.totalItems !== undefined ? res.totalItems : this.conductores.length;
+          this.cargando = false;
+        },
+        error: (err) => {
+          console.error(err);
+          this.cargando = false;
+        }
+      });
   }
 
   guardarConductor() {
@@ -44,7 +83,7 @@ export class ConductoresComponent implements OnInit {
       .subscribe({
         next: (creado) => {
           this.conductores.unshift(creado);
-          this.formulario = { dni: '', nombre: '', apellidos: '', telefono: '' };
+          this.formulario = { dni: '', nombre: '', apellidos: '', telefono: '', clienteId: '' };
         },
         error: (err) => {
           const msg = err.error?.mensaje || 'Error al crear el conductor.';

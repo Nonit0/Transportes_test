@@ -24,9 +24,9 @@ namespace TransportesBackend.Controllers
         // GET: api/Cargas     //
         // =================== //
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Carga>>> GetCargas()
+        public async Task<ActionResult<PaginatedResponse<Carga>>> GetCargas([FromQuery] int? page = null, [FromQuery] int? limit = null)
         {
-            var cargas = await _cargaService.ObtenerTodas();
+            var cargas = await _cargaService.ObtenerTodas(page, limit);
             return Ok(cargas);
         }
 

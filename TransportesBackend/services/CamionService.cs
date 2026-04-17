@@ -10,7 +10,7 @@ namespace TransportesBackend.Services
 {
     public interface ICamionService
     {
-        List<Camion> ObtenerTodos();
+        PaginatedResponse<Camion> ObtenerTodos(int? page = null, int? limit = null);
         Camion Crear(Camion camion);
         Camion Actualizar(string id, Camion camionActualizado);
         bool Eliminar(string id);
@@ -38,7 +38,7 @@ namespace TransportesBackend.Services
             return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
         }
 
-        public List<Camion> ObtenerTodos()
+        public PaginatedResponse<Camion> ObtenerTodos(int? page = null, int? limit = null)
         {
             var query = _context.Camion.IgnoreQueryFilters().AsQueryable();
             var clienteId = GetClienteId();
@@ -48,9 +48,18 @@ namespace TransportesBackend.Services
                 query = query.Where(c => c.ClienteId == clienteId);
             }
 
-            return query
+            int totalItems = query.Count();
+
+            if (page.HasValue && limit.HasValue && page.Value > 0 && limit.Value > 0)
+            {
+                query = query.Skip((page.Value - 1) * limit.Value).Take(limit.Value);
+            }
+
+            var data = query
                 .OrderByDescending(c => c.Activo)
                 .ToList();
+                
+            return new PaginatedResponse<Camion> { TotalItems = totalItems, Data = data };
         }
 
         public Camion Crear(Camion camion)

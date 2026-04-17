@@ -16,6 +16,7 @@ export class PedidosComponent implements OnInit {
   productos: any[] = [];  // Lista para el desplegable
 
   cargando = true;
+  totalItems = 0;
   apiUrl = environment.apiUrl;
 
   // ==========================================
@@ -41,12 +42,20 @@ export class PedidosComponent implements OnInit {
   // ==========================================
   // CARGA DE DATOS (GET)
   // ==========================================
-  cargarPedidos() {
+  refresh(state: any) {
     this.cargando = true;
-    this.http.get<any>(`${this.apiUrl}/Pedidos`).subscribe({
-      next: (data) => {
-        // Desempaquetamos el $values de .NET si existe
-        this.pedidos = data.$values ? data.$values : data;
+    const page = state.page ? state.page.current : 1;
+    const limit = state.page ? state.page.size : 50;
+    this.cargarPedidos(page, limit);
+  }
+
+  cargarPedidos(page: number = 1, limit: number = 50) {
+    this.cargando = true;
+    this.http.get<any>(`${this.apiUrl}/Pedidos?page=${page}&limit=${limit}`).subscribe({
+      next: (res) => {
+        const responseData = res.data ?? res;
+        this.pedidos = responseData.$values ? responseData.$values : responseData;
+        this.totalItems = res.totalItems !== undefined ? res.totalItems : this.pedidos.length;
         this.cargando = false;
       },
       error: (err) => {
@@ -58,14 +67,20 @@ export class PedidosComponent implements OnInit {
 
   cargarClientes() {
     this.http.get<any>(`${this.apiUrl}/Clientes`).subscribe({
-      next: (data) => this.clientes = data.$values ? data.$values : data,
+      next: (res) => {
+          const responseData = res.data ?? res;
+          this.clientes = responseData.$values ? responseData.$values : responseData;
+      },
       error: (err) => console.error('Falta endpoint de clientes', err)
     });
   }
 
   cargarProductos() {
     this.http.get<any>(`${this.apiUrl}/Productos`).subscribe({
-      next: (data) => this.productos = data.$values ? data.$values : data,
+      next: (res) => {
+          const responseData = res.data ?? res;
+          this.productos = responseData.$values ? responseData.$values : responseData;
+      },
       error: (err) => console.error('Falta endpoint de productos', err)
     });
   }

@@ -9,7 +9,7 @@ namespace TransportesBackend.Services
 {
     public interface IDireccionService
     {
-        List<Direccion> ObtenerTodas();
+        PaginatedResponse<Direccion> ObtenerTodas(int? page = null, int? limit = null);
         Direccion Crear(Direccion direccion);
     }
 
@@ -27,7 +27,7 @@ namespace TransportesBackend.Services
         private string GetClienteId() => _httpContextAccessor.HttpContext?.User?.FindFirst("ClienteId")?.Value;
         private string GetUserRole() => _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
 
-        public List<Direccion> ObtenerTodas()
+        public PaginatedResponse<Direccion> ObtenerTodas(int? page = null, int? limit = null)
         {
             var query = _context.Direccion.AsNoTracking().AsQueryable();
             var clienteId = GetClienteId();
@@ -42,7 +42,16 @@ namespace TransportesBackend.Services
                 query = query.Where(d => direccionIdsRelacionadas.Contains(d.Id));
             }
 
-            return query.ToList();
+            int totalItems = query.Count();
+
+            if (page.HasValue && limit.HasValue && page.Value > 0 && limit.Value > 0)
+            {
+                query = query.Skip((page.Value - 1) * limit.Value).Take(limit.Value);
+            }
+
+            var data = query.ToList();
+
+            return new PaginatedResponse<Direccion> { TotalItems = totalItems, Data = data };
         }
 
         public Direccion Crear(Direccion entidad)

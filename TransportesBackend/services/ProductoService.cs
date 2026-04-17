@@ -10,7 +10,7 @@ namespace TransportesBackend.Services
 {
     public interface IProductoService
     {
-        List<Producto> ObtenerTodos();
+        PaginatedResponse<Producto> ObtenerTodos(int? page = null, int? limit = null);
         Producto Crear(Producto producto);
         Producto Actualizar(string id, Producto productoActualizado);
         bool Eliminar(string id);
@@ -38,7 +38,7 @@ namespace TransportesBackend.Services
             return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
         }
 
-        public List<Producto> ObtenerTodos()
+        public PaginatedResponse<Producto> ObtenerTodos(int? page = null, int? limit = null)
         {
             var query = _context.Producto.AsQueryable();
             var clienteId = GetClienteId();
@@ -48,7 +48,16 @@ namespace TransportesBackend.Services
                 query = query.Where(p => p.ClienteId == clienteId);
             }
 
-            return query.ToList();
+            int totalItems = query.Count();
+
+            if (page.HasValue && limit.HasValue && page.Value > 0 && limit.Value > 0)
+            {
+                query = query.Skip((page.Value - 1) * limit.Value).Take(limit.Value);
+            }
+
+            var data = query.ToList();
+            
+            return new PaginatedResponse<Producto> { TotalItems = totalItems, Data = data };
         }
 
         public Producto Crear(Producto producto)

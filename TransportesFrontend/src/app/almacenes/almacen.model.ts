@@ -3,6 +3,7 @@ export interface Almacen {
     id: string;
     nombre: string;
     direccionId: string;
+    clienteId?: string;
     deletedAt: string | null;
     // Viene gracias al .Include(a => a.Direccion) del backend
     direccion: Direccion | null;

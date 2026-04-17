@@ -11,7 +11,7 @@ namespace TransportesBackend.Services
 {
     public interface ICargaService
     {
-        Task<List<Carga>> ObtenerTodas();
+        Task<PaginatedResponse<Carga>> ObtenerTodas(int? page = null, int? limit = null);
         Task<Carga> Crear(Carga cargaInput);
         Task<bool> Eliminar(string id);
     }
@@ -30,7 +30,7 @@ namespace TransportesBackend.Services
         private string GetClienteId() => _httpContextAccessor.HttpContext?.User?.FindFirst("ClienteId")?.Value;
         private string GetUserRole() => _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
 
-        public async Task<List<Carga>> ObtenerTodas()
+        public async Task<PaginatedResponse<Carga>> ObtenerTodas(int? page = null, int? limit = null)
         {
             var query = _context.Carga.AsQueryable();
             var clienteId = GetClienteId();
@@ -43,13 +43,22 @@ namespace TransportesBackend.Services
                                          c.DestinoClienteId == clienteId);
             }
 
-            return await query
+            int totalItems = await query.CountAsync();
+
+            if (page.HasValue && limit.HasValue && page.Value > 0 && limit.Value > 0)
+            {
+                query = query.Skip((page.Value - 1) * limit.Value).Take(limit.Value);
+            }
+
+            var data = await query
                 .Include(c => c.Camion)
                 .Include(c => c.Conductor)
                 .Include(c => c.CargaPedidos)
                     .ThenInclude(cp => cp.Pedido)
                 .OrderByDescending(c => c.FechaSalida)
                 .ToListAsync();
+
+            return new PaginatedResponse<Carga> { TotalItems = totalItems, Data = data };
         }
 
         public async Task<Carga> Crear(Carga cargaInput)

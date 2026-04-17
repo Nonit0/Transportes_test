@@ -56,6 +56,15 @@
               </clr-toggle-wrapper>
             </clr-toggle-container>
 
+            <clr-select-container *ngIf="isAdmin">
+              <label>Empresa (Cliente)</label>
+              <select clrSelect name="clienteId" [(ngModel)]="camionParaForm.clienteId" required>
+                <option value="" disabled selected>Selecciona un cliente</option>
+                <option *ngFor="let cli of clientes" [value]="cli.id">{{ cli.nombre }}</option>
+              </select>
+              <clr-control-error>Debes seleccionar una empresa</clr-control-error>
+            </clr-select-container>
+
             <div class="card-footer" style="padding: 1rem 0 0 0">
               <button type="submit" class="btn btn-primary" [disabled]="camionForm.invalid">
                 {{ camionEditando ? 'Guardar Cambios' : 'Registrar' }}
@@ -71,7 +80,7 @@
 
     <!-- LISTADO DE FLOTA -->
     <div class="clr-col-lg-8 clr-col-12">
-      <clr-datagrid>
+      <clr-datagrid (clrDgRefresh)="refresh($event)" [clrDgLoading]="cargando">
         <clr-dg-column [clrDgField]="'matricula'">Matrícula</clr-dg-column>
         <clr-dg-column [clrDgField]="'capacidadPeso'">Peso (kg)</clr-dg-column>
         <clr-dg-column [clrDgField]="'capacidadVolumen'">Volumen (m³)</clr-dg-column>
@@ -95,7 +104,10 @@
         </clr-dg-row>
 
         <clr-dg-footer>
-          {{camiones.length}} vehículos en flota
+          <clr-dg-pagination #pagination [clrDgPageSize]="50" [clrDgTotalItems]="totalItems">
+            <clr-dg-page-size [clrPageSizeOptions]="[10, 20, 50, 100]">Vehículos por página</clr-dg-page-size>
+            {{pagination.firstItem + 1}} - {{pagination.lastItem + 1}} de {{pagination.totalItems}} vehículos
+          </clr-dg-pagination>
         </clr-dg-footer>
       </clr-datagrid>
     </div>

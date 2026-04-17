@@ -9,7 +9,7 @@ namespace TransportesBackend.Services
 {
     public interface IClienteService
     {
-        List<Cliente> ObtenerTodos();
+        PaginatedResponse<Cliente> ObtenerTodos(int? page = null, int? limit = null);
         Cliente Crear(Cliente cliente);
         Cliente Actualizar(string id, Cliente clienteActualizado);
         bool Eliminar(string id);
@@ -32,7 +32,7 @@ namespace TransportesBackend.Services
             return _httpContextAccessor.HttpContext?.User?.FindFirst("ClienteId")?.Value;
         }
 
-        public List<Cliente> ObtenerTodos()
+        public PaginatedResponse<Cliente> ObtenerTodos(int? page = null, int? limit = null)
         {
             var query = _context.Cliente.AsQueryable();
             var clienteId = GetClienteId();
@@ -42,9 +42,18 @@ namespace TransportesBackend.Services
                 query = query.Where(c => c.Id == clienteId);
             }
 
-            return query
+            int totalItems = query.Count();
+
+            if (page.HasValue && limit.HasValue && page.Value > 0 && limit.Value > 0)
+            {
+                query = query.Skip((page.Value - 1) * limit.Value).Take(limit.Value);
+            }
+
+            var data = query
                 .Include(c => c.Direccion)
                 .ToList();
+                
+            return new PaginatedResponse<Cliente> { TotalItems = totalItems, Data = data };
         }
 
         public Cliente Crear(Cliente cliente)

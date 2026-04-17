@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { AuthService } from '../services/auth.service';
 
 export interface Fabrica {
   id: string;
@@ -8,6 +9,7 @@ export interface Fabrica {
   direccionId: string;
   deletedAt: string | null;
   direccion: any;
+  clienteId?: string;
 }
 
 export interface DireccionCombo {
@@ -24,7 +26,7 @@ export class FabricasComponent implements OnInit {
   fabricas: Fabrica[] = [];
   direcciones: DireccionCombo[] = [];
 
-  formulario = { nombre: '', direccionId: '' };
+  formulario = { nombre: '', direccionId: '', clienteId: '' };
 
   idEdicion: string | null = null;
   
@@ -32,27 +34,62 @@ export class FabricasComponent implements OnInit {
   nuevaDireccion = { calle: '', ciudad: '', cp: '', provincia: '', pais: '' };
 
   private apiUrl = environment.apiUrl;
+  isAdmin: boolean = false;
+  clientes: any[] = [];
+  
+  cargando = true;
+  totalItems = 0;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {
+    this.isAdmin = this.authService.getRol() === 'Administrador' || this.authService.getRol() === 'Admin';
+  }
 
   ngOnInit(): void {
     this.cargarFabricas();
     this.cargarDirecciones();
+    if (this.isAdmin) this.cargarClientes();
   }
 
-  cargarFabricas() {
-    this.http.get<any>(`${this.apiUrl}/Fabricas`)
+  cargarClientes() {
+    this.http.get<any>(`${this.apiUrl}/Clientes`)
       .subscribe({
-        next: (data) => this.fabricas = data.$values ? data.$values : data,
-        error: (err) => console.error('Error al cargar fábricas', err)
+        next: (res) => {
+          const responseData = res.data ?? res;
+          this.clientes = responseData.$values ? responseData.$values : responseData;
+        },
+        error: (err) => console.error('Error al cargar clientes', err)
+      });
+  }
+
+  refresh(state: any) {
+    this.cargando = true;
+    const page = state.page ? state.page.current : 1;
+    const limit = state.page ? state.page.size : 50;
+    this.cargarFabricas(page, limit);
+  }
+
+  cargarFabricas(page: number = 1, limit: number = 50) {
+    this.http.get<any>(`${this.apiUrl}/Fabricas?page=${page}&limit=${limit}`)
+      .subscribe({
+        next: (res) => {
+           const responseData = res.data ?? res;
+           this.fabricas = responseData.$values ? responseData.$values : responseData;
+           this.totalItems = res.totalItems !== undefined ? res.totalItems : this.fabricas.length;
+           this.cargando = false;
+        },
+        error: (err) => {
+           console.error('Error al cargar fábricas', err);
+           this.cargando = false;
+        }
       });
   }
 
   cargarDirecciones() {
     this.http.get<any>(`${this.apiUrl}/Direcciones`)
       .subscribe({
-        next: (data) => {
-          const raw = data.$values ? data.$values : data;
+        next: (res) => {
+          const responseData = res.data ?? res;
+          const raw = responseData.$values ? responseData.$values : responseData;
           this.direcciones = raw.map((d: any) => ({
             ...d,
             textoMostrar: `${d.calle} - ${d.ciudad} (${d.cp})`
@@ -104,14 +141,15 @@ export class FabricasComponent implements OnInit {
     this.idEdicion = fabrica.id;
     this.formulario = {
       nombre: fabrica.nombre,
-      direccionId: fabrica.direccionId
+      direccionId: fabrica.direccionId,
+      clienteId: fabrica.clienteId || ''
     };
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   resetearFormulario() {
     this.idEdicion = null;
-    this.formulario = { nombre: '', direccionId: '' };
+    this.formulario = { nombre: '', direccionId: '', clienteId: '' };
   }
 
   // ==========================================

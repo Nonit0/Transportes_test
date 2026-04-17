@@ -37,6 +37,15 @@
               <clr-control-error>La dirección es obligatoria</clr-control-error>
             </clr-select-container>
 
+            <clr-select-container *ngIf="isAdmin" style="margin-top: 1rem;">
+              <label>Empresa (Cliente)</label>
+              <select clrSelect name="clienteId" [(ngModel)]="formulario.clienteId" required>
+                <option value="" disabled selected>Selecciona un cliente</option>
+                <option *ngFor="let cli of clientes" [value]="cli.id">{{ cli.nombre }}</option>
+              </select>
+              <clr-control-error>Debes seleccionar una empresa</clr-control-error>
+            </clr-select-container>
+
             <div class="card-footer" style="padding: 1rem 0 0 0">
               <button type="submit" class="btn btn-primary" [disabled]="fabricaForm.invalid">
                 {{ idEdicion ? 'Actualizar' : 'Guardar' }}
@@ -52,7 +61,7 @@
 
     <!-- LISTADO -->
     <div class="clr-col-lg-8 clr-col-12">
-      <clr-datagrid [clrDgLoading]="fabricas.length === 0 && !idEdicion">
+      <clr-datagrid (clrDgRefresh)="refresh($event)" [clrDgLoading]="cargando">
         <clr-dg-column [clrDgField]="'nombre'">Fábrica</clr-dg-column>
         <clr-dg-column>Ubicación</clr-dg-column>
 
@@ -69,7 +78,12 @@
           </clr-dg-cell>
         </clr-dg-row>
 
-        <clr-dg-footer>{{fabricas.length}} fábricas registradas</clr-dg-footer>
+        <clr-dg-footer>
+          <clr-dg-pagination #pagination [clrDgPageSize]="50" [clrDgTotalItems]="totalItems">
+            <clr-dg-page-size [clrPageSizeOptions]="[10, 20, 50, 100]">Fábricas por página</clr-dg-page-size>
+            {{pagination.firstItem + 1}} - {{pagination.lastItem + 1}} de {{pagination.totalItems}} fábricas
+          </clr-dg-pagination>
+        </clr-dg-footer>
       </clr-datagrid>
     </div>
   </div>

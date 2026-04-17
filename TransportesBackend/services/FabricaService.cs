@@ -10,7 +10,7 @@ namespace TransportesBackend.Services
 {
     public interface IFabricaService
     {
-        List<Fabrica> ObtenerTodas();
+        PaginatedResponse<Fabrica> ObtenerTodas(int? page = null, int? limit = null);
         Fabrica Crear(Fabrica fabrica);
         Fabrica Actualizar(string id, Fabrica fabricaActualizada);
         bool Eliminar(string id);
@@ -38,7 +38,7 @@ namespace TransportesBackend.Services
             return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
         }
 
-        public List<Fabrica> ObtenerTodas()
+        public PaginatedResponse<Fabrica> ObtenerTodas(int? page = null, int? limit = null)
         {
             var query = _context.Fabrica.AsQueryable();
             var clienteId = GetClienteId();
@@ -48,9 +48,18 @@ namespace TransportesBackend.Services
                 query = query.Where(f => f.ClienteId == clienteId);
             }
 
-            return query
+            int totalItems = query.Count();
+
+            if (page.HasValue && limit.HasValue && page.Value > 0 && limit.Value > 0)
+            {
+                query = query.Skip((page.Value - 1) * limit.Value).Take(limit.Value);
+            }
+
+            var data = query
                 .Include(f => f.Direccion)
                 .ToList();
+                
+            return new PaginatedResponse<Fabrica> { TotalItems = totalItems, Data = data };
         }
 
         public Fabrica Crear(Fabrica fabrica)

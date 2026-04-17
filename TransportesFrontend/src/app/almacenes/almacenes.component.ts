@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Almacen, DireccionCombo } from './almacen.model';
 import { environment } from '../../environments/environment';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-almacenes',
@@ -14,7 +15,7 @@ export class AlmacenesComponent implements OnInit {
   idEdicion: string | null = null;
   
   formulario = {
-    nombre: '', direccionId: ''
+    nombre: '', direccionId: '', clienteId: ''
   };
 
   // ==========================================
@@ -22,24 +23,47 @@ export class AlmacenesComponent implements OnInit {
   // ==========================================
   mostrarModal = false;
   nuevaDireccion = { calle: '', ciudad: '', cp: '', provincia: '', pais: '' };
+  
+  // Paginación
+  totalItems: number = 0;
+  cargando: boolean = true;
 
   private apiUrl = environment.apiUrl;
+  isAdmin: boolean = false;
+  clientes: any[] = [];
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {
+    this.isAdmin = this.authService.getRol() === 'Administrador' || this.authService.getRol() === 'Admin';
+  }
 
   ngOnInit(): void {
     this.cargarAlmacenes();
     this.cargarDirecciones();
+    if (this.isAdmin) this.cargarClientes();
   }
 
-  // GET: Carga todos los almacenes
-  cargarAlmacenes() {
-    this.http.get<any>(`${this.apiUrl}/Almacenes`)
+  // Evento Refresh de Clarity Datagrid para Server-Side Pagination
+  refresh(state: any) {
+    this.cargando = true;
+    const page = state.page ? state.page.current : 1;
+    const limit = state.page ? state.page.size : 50;
+    this.cargarAlmacenes(page, limit);
+  }
+
+  // GET: Carga todos los almacenes (paginado)
+  cargarAlmacenes(page: number = 1, limit: number = 50) {
+    this.http.get<any>(`${this.apiUrl}/Almacenes?page=${page}&limit=${limit}`)
       .subscribe({
-        next: (data) => {
-          this.almacenes = data.$values ? data.$values : data;
+        next: (res) => {
+          const responseData = res.data ?? res;
+          this.almacenes = responseData.$values ? responseData.$values : responseData;
+          this.totalItems = res.totalItems !== undefined ? res.totalItems : this.almacenes.length;
+          this.cargando = false;
         },
-        error: (err) => console.error('Error al cargar almacenes', err)
+        error: (err) => {
+          console.error('Error al cargar almacenes', err);
+          this.cargando = false;
+        }
       });
   }
 
@@ -47,8 +71,9 @@ export class AlmacenesComponent implements OnInit {
   cargarDirecciones() {
     this.http.get<any>(`${this.apiUrl}/Direcciones`)
       .subscribe({
-        next: (data) => {
-          const raw = data.$values ? data.$values : data;
+        next: (res) => {
+          const responseData = res.data ?? res;
+          const raw = responseData.$values ? responseData.$values : responseData;
           // Generamos textoMostrar si el backend no lo envía (o usamos el del backend si lo hace)
           this.direcciones = raw.map((d: any) => ({
             ...d,
@@ -56,6 +81,17 @@ export class AlmacenesComponent implements OnInit {
           }));
         },
         error: (err) => console.error('Error al cargar direcciones', err)
+      });
+  }
+
+  cargarClientes() {
+    this.http.get<any>(`${this.apiUrl}/Clientes`)
+      .subscribe({
+        next: (res) => {
+          const responseData = res.data ?? res;
+          this.clientes = responseData.$values ? responseData.$values : responseData;
+        },
+        error: (err) => console.error('Error al cargar clientes', err)
       });
   }
 
@@ -103,14 +139,15 @@ export class AlmacenesComponent implements OnInit {
     this.idEdicion = elemento.id;
     this.formulario = { 
       nombre: elemento.nombre, 
-      direccionId: elemento.direccionId
+      direccionId: elemento.direccionId,
+      clienteId: elemento.clienteId || ''
     };
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   resetearFormulario() {
     this.idEdicion = null;
-    this.formulario = { nombre: '', direccionId: '' };
+    this.formulario = { nombre: '', direccionId: '', clienteId: '' };
   }
 
   // ==========================================

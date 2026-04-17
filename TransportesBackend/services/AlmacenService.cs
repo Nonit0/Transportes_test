@@ -13,7 +13,7 @@ namespace TransportesBackend.Services
     // El controlador solo conoce esta interfaz, nunca la implementación directa
     public interface IAlmacenService
     {
-        List<Almacen> ObtenerTodos();
+        PaginatedResponse<Almacen> ObtenerTodos(int? page = null, int? limit = null);
         Almacen Crear(Almacen almacen);
         Almacen Actualizar(string id, Almacen almacenActualizado);
         bool Eliminar(string id);
@@ -44,7 +44,7 @@ namespace TransportesBackend.Services
         // =================== //
         // Obtener todos       //
         // =================== //
-        public List<Almacen> ObtenerTodos()
+        public PaginatedResponse<Almacen> ObtenerTodos(int? page = null, int? limit = null)
         {
             var query = _context.Almacen.AsQueryable();
             var clienteId = GetClienteId();
@@ -54,9 +54,22 @@ namespace TransportesBackend.Services
                 query = query.Where(a => a.ClienteId == clienteId);
             }
 
-            return query
+            int totalItems = query.Count();
+
+            if (page.HasValue && limit.HasValue && page.Value > 0 && limit.Value > 0)
+            {
+                query = query.Skip((page.Value - 1) * limit.Value).Take(limit.Value);
+            }
+
+            var data = query
                 .Include(a => a.Direccion)
                 .ToList();
+
+            return new PaginatedResponse<Almacen>
+            {
+                TotalItems = totalItems,
+                Data = data
+            };
         }
 
         // =================== //

@@ -10,7 +10,7 @@ namespace TransportesBackend.Services
 {
     public interface IPedidoService
     {
-        List<Pedido> ObtenerTodos();
+        PaginatedResponse<Pedido> ObtenerTodos(int? page = null, int? limit = null);
         Pedido Crear(Pedido pedido);
         bool Eliminar(string id);
         bool CambiarEstado(string id, string nuevoEstado);
@@ -42,7 +42,7 @@ namespace TransportesBackend.Services
         // =================== //
         // Obtener todos       //
         // =================== //
-        public List<Pedido> ObtenerTodos()
+        public PaginatedResponse<Pedido> ObtenerTodos(int? page = null, int? limit = null)
         {
             var query = _context.Pedido.IgnoreQueryFilters().AsQueryable();
             var clienteId = GetClienteId();
@@ -52,12 +52,21 @@ namespace TransportesBackend.Services
                 query = query.Where(p => p.ClienteId == clienteId);
             }
 
-            return query
+            int totalItems = query.Count();
+
+            if (page.HasValue && limit.HasValue && page.Value > 0 && limit.Value > 0)
+            {
+                query = query.Skip((page.Value - 1) * limit.Value).Take(limit.Value);
+            }
+
+            var data = query
                 .Include(p => p.Cliente)
                 .Include(p => p.PedidoDetalles)
                     .ThenInclude(pd => pd.Producto)
                 .OrderByDescending(p => p.FechaPedido)
                 .ToList();
+                
+            return new PaginatedResponse<Pedido> { TotalItems = totalItems, Data = data };
         }
 
         // =================== //

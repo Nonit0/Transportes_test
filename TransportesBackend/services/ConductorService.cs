@@ -10,7 +10,7 @@ namespace TransportesBackend.Services
 {
     public interface IConductorService
     {
-        List<Conductor> ObtenerTodos();
+        PaginatedResponse<Conductor> ObtenerTodos(int? page = null, int? limit = null);
         Conductor Crear(Conductor conductor);
         Conductor Actualizar(string id, Conductor conductorActualizado);
         bool Eliminar(string id);
@@ -38,7 +38,7 @@ namespace TransportesBackend.Services
             return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
         }
 
-        public List<Conductor> ObtenerTodos()
+        public PaginatedResponse<Conductor> ObtenerTodos(int? page = null, int? limit = null)
         {
             var query = _context.Conductor.AsQueryable();
             var clienteId = GetClienteId();
@@ -48,7 +48,16 @@ namespace TransportesBackend.Services
                 query = query.Where(c => c.ClienteId == clienteId);
             }
 
-            return query.ToList();
+            int totalItems = query.Count();
+
+            if (page.HasValue && limit.HasValue && page.Value > 0 && limit.Value > 0)
+            {
+                query = query.Skip((page.Value - 1) * limit.Value).Take(limit.Value);
+            }
+
+            var data = query.ToList();
+            
+            return new PaginatedResponse<Conductor> { TotalItems = totalItems, Data = data };
         }
 
         public Conductor Crear(Conductor conductor)

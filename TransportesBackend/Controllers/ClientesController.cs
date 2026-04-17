@@ -22,9 +22,9 @@ namespace TransportesBackend.Controllers
         // GET: api/Clientes   //
         // =================== //
         [HttpGet]
-        public ActionResult<IEnumerable<Cliente>> GetClientes()
+        public ActionResult<PaginatedResponse<Cliente>> GetClientes([FromQuery] int? page = null, [FromQuery] int? limit = null)
         {
-            var clientes = _clienteService.ObtenerTodos();
+            var clientes = _clienteService.ObtenerTodos(page, limit);
             return Ok(clientes);
         }
 

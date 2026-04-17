@@ -23,9 +23,9 @@ namespace TransportesBackend.Controllers
         // GET: api/Pedidos    //
         // =================== //
         [HttpGet]
-        public ActionResult<IEnumerable<Pedido>> GetPedidos()
+        public ActionResult<PaginatedResponse<Pedido>> GetPedidos([FromQuery] int? page = null, [FromQuery] int? limit = null)
         {
-            var pedidos = _pedidoService.ObtenerTodos();
+            var pedidos = _pedidoService.ObtenerTodos(page, limit);
             return Ok(pedidos);
         }
 

@@ -22,9 +22,9 @@ namespace TransportesBackend.Controllers
         // GET: api/Productos      //
         // ======================= //
         [HttpGet]
-        public ActionResult<IEnumerable<Producto>> GetProductos()
+        public ActionResult<PaginatedResponse<Producto>> GetProductos([FromQuery] int? page = null, [FromQuery] int? limit = null)
         {
-            var productos = _productoService.ObtenerTodos();
+            var productos = _productoService.ObtenerTodos(page, limit);
             return Ok(productos);
         }
 

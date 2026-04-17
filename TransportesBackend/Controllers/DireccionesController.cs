@@ -22,9 +22,9 @@ namespace TransportesBackend.Controllers
         // GET: api/Direcciones    //
         // ======================= //
         [HttpGet]
-        public ActionResult<IEnumerable<Direccion>> GetDirecciones()
+        public ActionResult<PaginatedResponse<Direccion>> GetDirecciones([FromQuery] int? page = null, [FromQuery] int? limit = null)
         {
-            var direcciones = _direccionService.ObtenerTodas();
+            var direcciones = _direccionService.ObtenerTodas(page, limit);
             return Ok(direcciones);
         }
         

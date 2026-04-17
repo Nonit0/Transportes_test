@@ -26,9 +26,9 @@ namespace TransportesBackend.Controllers
         // GET: api/Almacenes  //
         // =================== //
         [HttpGet]
-        public ActionResult<IEnumerable<Almacen>> GetAlmacenes()
+        public ActionResult<PaginatedResponse<Almacen>> GetAlmacenes([FromQuery] int? page = null, [FromQuery] int? limit = null)
         {
-            var almacenes = _almacenService.ObtenerTodos();
+            var almacenes = _almacenService.ObtenerTodos(page, limit);
             return Ok(almacenes);
         }
 

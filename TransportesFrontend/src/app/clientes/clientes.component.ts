@@ -52,6 +52,9 @@ export class ClientesComponent implements OnInit {
 
   private apiUrl = environment.apiUrl;
 
+  cargando = true;
+  totalItems = 0;
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
@@ -59,19 +62,35 @@ export class ClientesComponent implements OnInit {
     this.cargarDirecciones();
   }
 
-  cargarClientes() {
-    this.http.get<any>(`${this.apiUrl}/Clientes`)
+  refresh(state: any) {
+    this.cargando = true;
+    const page = state.page ? state.page.current : 1;
+    const limit = state.page ? state.page.size : 50;
+    this.cargarClientes(page, limit);
+  }
+
+  cargarClientes(page: number = 1, limit: number = 50) {
+    this.http.get<any>(`${this.apiUrl}/Clientes?page=${page}&limit=${limit}`)
       .subscribe({
-        next: (data) => this.clientes = data.$values ? data.$values : data,
-        error: (err) => console.error('Error al cargar clientes', err)
+        next: (res) => {
+           const responseData = res.data ?? res;
+           this.clientes = responseData.$values ? responseData.$values : responseData;
+           this.totalItems = res.totalItems !== undefined ? res.totalItems : this.clientes.length;
+           this.cargando = false;
+        },
+        error: (err) => {
+           console.error('Error al cargar clientes', err);
+           this.cargando = false;
+        }
       });
   }
 
   cargarDirecciones() {
     this.http.get<any>(`${this.apiUrl}/Direcciones`)
       .subscribe({
-        next: (data) => {
-          const raw = data.$values ? data.$values : data;
+        next: (res) => {
+          const responseData = res.data ?? res;
+          const raw = responseData.$values ? responseData.$values : responseData;
           this.direcciones = raw.map((d: any) => ({
             ...d,
             textoMostrar: `${d.calle} - ${d.ciudad} (${d.cp})`

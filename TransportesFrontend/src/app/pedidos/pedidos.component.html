@@ -9,7 +9,7 @@
     </button>
   </div>
 
-  <clr-datagrid [clrDgLoading]="cargando">
+  <clr-datagrid (clrDgRefresh)="refresh($event)" [clrDgLoading]="cargando">
     <clr-dg-column>ID Pedido</clr-dg-column>
     <clr-dg-column>Cliente</clr-dg-column>
     <clr-dg-column>Fecha</clr-dg-column>
@@ -70,13 +70,13 @@
         </ng-container>
 
         <span *ngIf="pedido.deletedAt" class="texto-bloqueado">
-          <cds-icon shape="ban"></cds-icon> Bloqueado
+          <cds-icon shape="ban"></cds-icon> Eliminado
         </span>
       </clr-dg-cell>
     </clr-dg-row>
 
     <clr-dg-footer>
-      <clr-dg-pagination #pagination [clrDgPageSize]="10">
+      <clr-dg-pagination #pagination [clrDgPageSize]="50" [clrDgTotalItems]="totalItems">
         <clr-dg-page-size [clrPageSizeOptions]="[10, 20, 50, 100]"
           >Pedidos por página</clr-dg-page-size
         >

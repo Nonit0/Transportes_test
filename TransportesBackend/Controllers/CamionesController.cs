@@ -22,9 +22,9 @@ namespace TransportesBackend.Controllers
         // GET: api/Camiones   //
         // =================== //
         [HttpGet]
-        public ActionResult<IEnumerable<Camion>> GetCamiones()
+        public ActionResult<PaginatedResponse<Camion>> GetCamiones([FromQuery] int? page = null, [FromQuery] int? limit = null)
         {
-            var camiones = _camionService.ObtenerTodos();
+            var camiones = _camionService.ObtenerTodos(page, limit);
             return Ok(camiones);
         }
 

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { AuthService } from '../services/auth.service';
 
 export interface Producto {
   id: string;
@@ -8,6 +9,7 @@ export interface Producto {
   descripcion: string;
   pesoUnitario: number;
   volumenUnitario: number;
+  clienteId?: string;
 }
 
 export interface CreateProducto {
@@ -15,6 +17,7 @@ export interface CreateProducto {
   descripcion: string;
   pesoUnitario: number;
   volumenUnitario: number;
+  clienteId?: string;
 }
 
 @Component({
@@ -26,23 +29,60 @@ export class ProductosComponent implements OnInit {
   productos: Producto[] = [];
   
   // Formulario de creación
-  formulario: CreateProducto = { nombre: '', descripcion: '', pesoUnitario: 0, volumenUnitario: 0 };
+  formulario: CreateProducto = { nombre: '', descripcion: '', pesoUnitario: 0, volumenUnitario: 0, clienteId: '' };
 
   // Variables para Edición Inline
   idEdicion: string | null = null;
   productoEnEdicion: any = {};
 
   private apiUrl = environment.apiUrl;
+  isAdmin: boolean = false;
+  clientes: any[] = [];
+  
+  cargando = true;
+  totalItems = 0;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {
+    this.isAdmin = this.authService.getRol() === 'Administrador' || this.authService.getRol() === 'Admin';
+  }
 
   ngOnInit(): void {
     this.cargarProductos();
+    if (this.isAdmin) this.cargarClientes();
   }
 
-  cargarProductos() {
-    this.http.get<any>(`${this.apiUrl}/Productos`)
-      .subscribe({ next: (data) => this.productos = data.$values ? data.$values : data });
+  cargarClientes() {
+    this.http.get<any>(`${this.apiUrl}/Clientes`)
+      .subscribe({
+        next: (res) => {
+          const responseData = res.data ?? res;
+          this.clientes = responseData.$values ? responseData.$values : responseData;
+        },
+        error: (err) => console.error('Error al cargar clientes', err)
+      });
+  }
+
+  refresh(state: any) {
+    this.cargando = true;
+    const page = state.page ? state.page.current : 1;
+    const limit = state.page ? state.page.size : 50;
+    this.cargarProductos(page, limit);
+  }
+
+  cargarProductos(page: number = 1, limit: number = 50) {
+    this.http.get<any>(`${this.apiUrl}/Productos?page=${page}&limit=${limit}`)
+      .subscribe({ 
+        next: (res) => {
+          const responseData = res.data ?? res;
+          this.productos = responseData.$values ? responseData.$values : responseData;
+          this.totalItems = res.totalItems !== undefined ? res.totalItems : this.productos.length;
+          this.cargando = false;
+        },
+        error: (err) => {
+          console.error(err);
+          this.cargando = false;
+        }
+      });
   }
 
   guardarProducto() {
@@ -50,7 +90,7 @@ export class ProductosComponent implements OnInit {
       .subscribe({
         next: (creado) => {
           this.productos.unshift(creado);
-          this.formulario = { nombre: '', descripcion: '', pesoUnitario: 0, volumenUnitario: 0 }; // Reset
+          this.formulario = { nombre: '', descripcion: '', pesoUnitario: 0, volumenUnitario: 0, clienteId: '' }; // Reset
         },
         error: (err) => alert('Error al crear. ¿Quizás el nombre ya existe?')
       });

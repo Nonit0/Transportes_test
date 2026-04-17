@@ -4,6 +4,7 @@ export interface Camion {
   capacidadPeso: number;
   capacidadVolumen: number;
   activo: boolean;
+  clienteId?: string;
 }
 
 export interface CreateCamion {
@@ -11,6 +12,7 @@ export interface CreateCamion {
   capacidadPeso: number;
   capacidadVolumen: number;
   activo: boolean;
+  clienteId?: string;
 }
 
 export interface UpdateCamion {
@@ -18,4 +20,5 @@ export interface UpdateCamion {
   capacidadPeso: number;
   capacidadVolumen: number;
   activo: boolean;
+  clienteId?: string;
 }

@@ -22,9 +22,9 @@ namespace TransportesBackend.Controllers
         // GET: api/Conductores    //
         // ======================= //
         [HttpGet]
-        public ActionResult<IEnumerable<Conductor>> GetConductores()
+        public ActionResult<PaginatedResponse<Conductor>> GetConductores([FromQuery] int? page = null, [FromQuery] int? limit = null)
         {
-            var conductores = _conductorService.ObtenerTodos();
+            var conductores = _conductorService.ObtenerTodos(page, limit);
             return Ok(conductores);
         }
 
