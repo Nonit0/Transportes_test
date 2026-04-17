@@ -15,6 +15,9 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using TransportesBackend.Models;
 using TransportesBackend.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace TransportesBackend
 {
@@ -66,6 +69,7 @@ namespace TransportesBackend
             // AddScoped = una instancia por petición HTTP (lo más común en web)
             services.AddScoped<IAlmacenService, AlmacenService>();
             services.AddScoped<ICamionService, CamionService>();
+            services.AddScoped<ICargaService, CargaService>();
             services.AddScoped<IClienteService, ClienteService>();
             services.AddScoped<IConductorService, ConductorService>();
             services.AddScoped<IDireccionService, DireccionService>();
@@ -131,7 +135,35 @@ namespace TransportesBackend
                     }
                 });
                 */
-            });            
+            });
+
+            services.AddHttpContextAccessor();
+
+
+            // ==========================================
+            // 6. JWT Authentication
+            // ==========================================
+            var key = Encoding.ASCII.GetBytes(Configuration["Jwt:Key"]);
+            services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(x =>
+            {
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = Configuration["Jwt:Issuer"],
+                    ValidateAudience = true,
+                    ValidAudience = Configuration["Jwt:Audience"],
+                    ValidateLifetime = true
+                };
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -159,8 +191,8 @@ namespace TransportesBackend
             // ==========================================
             // 3. UseAuth (Authentication / Authorization)
             // ==========================================
+            app.UseAuthentication();
             app.UseAuthorization();
-            // app.UseAuthentication(); // Descomentar cuando tengamos un esquema authn
 
             // ==========================================
             // 4. UseEndpoints -> MapControllers

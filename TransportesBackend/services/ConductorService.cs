@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TransportesBackend.Models;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace TransportesBackend.Services
 {
@@ -18,20 +20,47 @@ namespace TransportesBackend.Services
     public class ConductorService : IConductorService
     {
         private readonly TransportesDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ConductorService(TransportesDbContext context)
+        public ConductorService(TransportesDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private string GetClienteId()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst("ClienteId")?.Value;
+        }
+
+        private string GetUserRole()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
         }
 
         public List<Conductor> ObtenerTodos()
         {
-            return _context.Conductor.ToList();
+            var query = _context.Conductor.AsQueryable();
+            var clienteId = GetClienteId();
+
+            if (!string.IsNullOrEmpty(clienteId))
+            {
+                query = query.Where(c => c.ClienteId == clienteId);
+            }
+
+            return query.ToList();
         }
 
         public Conductor Crear(Conductor conductor)
         {
             if (string.IsNullOrEmpty(conductor.Id)) conductor.Id = Guid.NewGuid().ToString();
+            
+            var clienteId = GetClienteId();
+            if (!string.IsNullOrEmpty(clienteId))
+            {
+                conductor.ClienteId = clienteId;
+            }
+
             _context.Conductor.Add(conductor);
             _context.SaveChanges();
             return conductor;

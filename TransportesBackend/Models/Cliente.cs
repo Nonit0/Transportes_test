@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -17,6 +17,12 @@ namespace TransportesBackend.Models
         {
             Cargas = new HashSet<Carga>();
             Pedidos = new HashSet<Pedido>();
+            Productos = new HashSet<Producto>();
+            Fabricas = new HashSet<Fabrica>();
+            Almacenes = new HashSet<Almacen>();
+            Conductores = new HashSet<Conductor>();
+            Camiones = new HashSet<Camion>();
+            Usuarios = new HashSet<Usuario>();
         }
 
         [Key]
@@ -48,6 +54,16 @@ namespace TransportesBackend.Models
         [InverseProperty(nameof(Pedido.Cliente))]
         public virtual ICollection<Pedido> Pedidos { get; set; }
         [InverseProperty("Cliente")]
-        public virtual ICollection<Usuario> Usuario { get; set; }
+        public virtual ICollection<Producto> Productos { get; set; }
+        [InverseProperty("Cliente")]
+        public virtual ICollection<Fabrica> Fabricas { get; set; }
+        [InverseProperty("Cliente")]
+        public virtual ICollection<Almacen> Almacenes { get; set; }
+        [InverseProperty("Cliente")]
+        public virtual ICollection<Conductor> Conductores { get; set; }
+        [InverseProperty("Cliente")]
+        public virtual ICollection<Camion> Camiones { get; set; }
+        [InverseProperty("Cliente")]
+        public virtual ICollection<Usuario> Usuarios { get; set; }
     }
 }

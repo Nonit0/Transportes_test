@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TransportesBackend.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace TransportesBackend.Services
 {
@@ -18,15 +19,30 @@ namespace TransportesBackend.Services
     public class ClienteService : IClienteService
     {
         private readonly TransportesDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ClienteService(TransportesDbContext context)
+        public ClienteService(TransportesDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private string GetClienteId()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst("ClienteId")?.Value;
         }
 
         public List<Cliente> ObtenerTodos()
         {
-            return _context.Cliente
+            var query = _context.Cliente.AsQueryable();
+            var clienteId = GetClienteId();
+
+            if (!string.IsNullOrEmpty(clienteId))
+            {
+                query = query.Where(c => c.Id == clienteId);
+            }
+
+            return query
                 .Include(c => c.Direccion)
                 .ToList();
         }

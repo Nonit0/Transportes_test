@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -37,9 +37,15 @@ namespace TransportesBackend.Models
         [Column("telefono")]
         [StringLength(20)]
         public string Telefono { get; set; }
+        [Column("cliente_id")]
+        [StringLength(36)]
+        public string ClienteId { get; set; }
         [Column("deleted_at", TypeName = "datetime")]
         public DateTime? DeletedAt { get; set; }
 
+        [ForeignKey(nameof(ClienteId))]
+        [InverseProperty("Conductores")]
+        public virtual Cliente Cliente { get; set; }
         [InverseProperty(nameof(Carga.Conductor))]
         public virtual ICollection<Carga> Cargas { get; set; }
     }

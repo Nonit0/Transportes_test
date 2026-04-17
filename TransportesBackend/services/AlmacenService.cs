@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TransportesBackend.Models;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace TransportesBackend.Services
 {
@@ -21,10 +24,21 @@ namespace TransportesBackend.Services
     public class AlmacenService : IAlmacenService
     {
         private readonly TransportesDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AlmacenService(TransportesDbContext context)
+        public AlmacenService(TransportesDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+        }
+        private string GetClienteId()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst("ClienteId")?.Value;
+        }
+
+        private string GetUserRole()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
         }
 
         // =================== //
@@ -32,8 +46,15 @@ namespace TransportesBackend.Services
         // =================== //
         public List<Almacen> ObtenerTodos()
         {
-            // Include carga la Dirección asociada en el JSON de salida
-            return _context.Almacen
+            var query = _context.Almacen.AsQueryable();
+            var clienteId = GetClienteId();
+
+            if (!string.IsNullOrEmpty(clienteId))
+            {
+                query = query.Where(a => a.ClienteId == clienteId);
+            }
+
+            return query
                 .Include(a => a.Direccion)
                 .ToList();
         }
@@ -44,6 +65,13 @@ namespace TransportesBackend.Services
         public Almacen Crear(Almacen almacen)
         {
             if (string.IsNullOrEmpty(almacen.Id)) almacen.Id = Guid.NewGuid().ToString();
+            
+            var clienteId = GetClienteId();
+            if (!string.IsNullOrEmpty(clienteId))
+            {
+                almacen.ClienteId = clienteId;
+            }
+
             _context.Almacen.Add(almacen);
             _context.SaveChanges();
 

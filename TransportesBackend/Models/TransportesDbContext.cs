@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -54,6 +54,12 @@ namespace TransportesBackend.Models
                     .HasForeignKey(d => d.DireccionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_alm_dir");
+
+                entity.HasOne(d => d.Cliente)
+                    .WithMany(p => p.Almacenes)
+                    .HasForeignKey(d => d.ClienteId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("fk_alm_cli");
             });
 
             modelBuilder.Entity<Camion>(entity =>
@@ -65,6 +71,12 @@ namespace TransportesBackend.Models
                 entity.Property(e => e.CapacidadPeso).HasPrecision(10, 2);
 
                 entity.Property(e => e.CapacidadVolumen).HasPrecision(10, 2);
+
+                entity.HasOne(d => d.Cliente)
+                    .WithMany(p => p.Camiones)
+                    .HasForeignKey(d => d.ClienteId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("fk_camion_cli");
             });
 
             modelBuilder.Entity<Carga>(entity =>
@@ -131,6 +143,12 @@ namespace TransportesBackend.Models
             modelBuilder.Entity<Conductor>(entity =>
             {
                 entity.Property(e => e.Id).HasDefaultValueSql("uuid()");
+
+                entity.HasOne(d => d.Cliente)
+                    .WithMany(p => p.Conductores)
+                    .HasForeignKey(d => d.ClienteId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("fk_cond_cli");
             });
 
             modelBuilder.Entity<Direccion>(entity =>
@@ -168,6 +186,12 @@ namespace TransportesBackend.Models
                     .HasForeignKey(d => d.DireccionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_fab_dir");
+
+                entity.HasOne(d => d.Cliente)
+                    .WithMany(p => p.Fabricas)
+                    .HasForeignKey(d => d.ClienteId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("fk_fab_cli");
             });
 
             modelBuilder.Entity<Pedido>(entity =>
@@ -206,6 +230,12 @@ namespace TransportesBackend.Models
                 entity.Property(e => e.PesoUnitario).HasPrecision(10, 2);
 
                 entity.Property(e => e.VolumenUnitario).HasPrecision(10, 2);
+
+                entity.HasOne(d => d.Cliente)
+                    .WithMany(p => p.Productos)
+                    .HasForeignKey(d => d.ClienteId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("fk_prod_cli");
             });
 
             modelBuilder.Entity<Usuario>(entity =>
@@ -215,7 +245,7 @@ namespace TransportesBackend.Models
                 entity.Property(e => e.Rol).HasDefaultValueSql("'1'");
 
                 entity.HasOne(d => d.Cliente)
-                    .WithMany(p => p.Usuario)
+                    .WithMany(p => p.Usuarios)
                     .HasForeignKey(d => d.ClienteId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("fk_usuario_cliente");

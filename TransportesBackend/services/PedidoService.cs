@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TransportesBackend.Models;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace TransportesBackend.Services
 {
@@ -19,10 +21,22 @@ namespace TransportesBackend.Services
     public class PedidoService : IPedidoService
     {
         private readonly TransportesDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public PedidoService(TransportesDbContext context)
+        public PedidoService(TransportesDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private string GetClienteId()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst("ClienteId")?.Value;
+        }
+
+        private string GetUserRole()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
         }
 
         // =================== //
@@ -30,13 +44,20 @@ namespace TransportesBackend.Services
         // =================== //
         public List<Pedido> ObtenerTodos()
         {
-            return _context.Pedido
-            .IgnoreQueryFilters()
+            var query = _context.Pedido.IgnoreQueryFilters().AsQueryable();
+            var clienteId = GetClienteId();
+
+            if (!string.IsNullOrEmpty(clienteId))
+            {
+                query = query.Where(p => p.ClienteId == clienteId);
+            }
+
+            return query
                 .Include(p => p.Cliente)
                 .Include(p => p.PedidoDetalles)
                     .ThenInclude(pd => pd.Producto)
                 .OrderByDescending(p => p.FechaPedido)
-                .ToList(); // 100% síncrono
+                .ToList();
         }
 
         // =================== //
@@ -54,6 +75,13 @@ namespace TransportesBackend.Services
             {
                 detalle.Id = Guid.NewGuid().ToString();
                 detalle.PedidoId = pedidoInput.Id;
+            }
+
+            // Si es un cliente, forzamos que el ClienteId sea el suyo
+            var clienteId = GetClienteId();
+            if (!string.IsNullOrEmpty(clienteId))
+            {
+                pedidoInput.ClienteId = clienteId;
             }
 
             // 3. Añadir el pedido (EF Core añade los detalles automáticamente porque están dentro del pedido)

@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TransportesBackend.Models;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace TransportesBackend.Services
 {
@@ -18,15 +20,35 @@ namespace TransportesBackend.Services
     public class FabricaService : IFabricaService
     {
         private readonly TransportesDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public FabricaService(TransportesDbContext context)
+        public FabricaService(TransportesDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private string GetClienteId()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst("ClienteId")?.Value;
+        }
+
+        private string GetUserRole()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
         }
 
         public List<Fabrica> ObtenerTodas()
         {
-            return _context.Fabrica
+            var query = _context.Fabrica.AsQueryable();
+            var clienteId = GetClienteId();
+
+            if (!string.IsNullOrEmpty(clienteId))
+            {
+                query = query.Where(f => f.ClienteId == clienteId);
+            }
+
+            return query
                 .Include(f => f.Direccion)
                 .ToList();
         }
@@ -34,6 +56,13 @@ namespace TransportesBackend.Services
         public Fabrica Crear(Fabrica fabrica)
         {
             if (string.IsNullOrEmpty(fabrica.Id)) fabrica.Id = Guid.NewGuid().ToString();
+            
+            var clienteId = GetClienteId();
+            if (!string.IsNullOrEmpty(clienteId))
+            {
+                fabrica.ClienteId = clienteId;
+            }
+
             _context.Fabrica.Add(fabrica);
             _context.SaveChanges();
             return _context.Fabrica

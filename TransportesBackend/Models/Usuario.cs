@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -46,7 +46,7 @@ namespace TransportesBackend.Models
         public DateTime? DeletedAt { get; set; }
 
         [ForeignKey(nameof(ClienteId))]
-        [InverseProperty("Usuario")]
+        [InverseProperty("Usuarios")]
         public virtual Cliente Cliente { get; set; }
     }
 }

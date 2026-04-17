@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TransportesBackend.Models;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace TransportesBackend.Services
 {
@@ -18,16 +20,35 @@ namespace TransportesBackend.Services
     public class CamionService : ICamionService
     {
         private readonly TransportesDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CamionService(TransportesDbContext context)
+        public CamionService(TransportesDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private string GetClienteId()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst("ClienteId")?.Value;
+        }
+
+        private string GetUserRole()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
         }
 
         public List<Camion> ObtenerTodos()
         {
-            return _context.Camion
-                .IgnoreQueryFilters()
+            var query = _context.Camion.IgnoreQueryFilters().AsQueryable();
+            var clienteId = GetClienteId();
+
+            if (!string.IsNullOrEmpty(clienteId))
+            {
+                query = query.Where(c => c.ClienteId == clienteId);
+            }
+
+            return query
                 .OrderByDescending(c => c.Activo)
                 .ToList();
         }
@@ -35,6 +56,13 @@ namespace TransportesBackend.Services
         public Camion Crear(Camion camion)
         {
             if (string.IsNullOrEmpty(camion.Id)) camion.Id = Guid.NewGuid().ToString();
+            
+            var clienteId = GetClienteId();
+            if (!string.IsNullOrEmpty(clienteId))
+            {
+                camion.ClienteId = clienteId;
+            }
+
             _context.Camion.Add(camion);
             _context.SaveChanges();
             return camion;

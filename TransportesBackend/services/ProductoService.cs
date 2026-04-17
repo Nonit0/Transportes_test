@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TransportesBackend.Models;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace TransportesBackend.Services
 {
@@ -18,20 +20,47 @@ namespace TransportesBackend.Services
     public class ProductoService : IProductoService
     {
         private readonly TransportesDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ProductoService(TransportesDbContext context)
+        public ProductoService(TransportesDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private string GetClienteId()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst("ClienteId")?.Value;
+        }
+
+        private string GetUserRole()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
         }
 
         public List<Producto> ObtenerTodos()
         {
-            return _context.Producto.ToList();
+            var query = _context.Producto.AsQueryable();
+            var clienteId = GetClienteId();
+
+            if (!string.IsNullOrEmpty(clienteId))
+            {
+                query = query.Where(p => p.ClienteId == clienteId);
+            }
+
+            return query.ToList();
         }
 
         public Producto Crear(Producto producto)
         {
             if (string.IsNullOrEmpty(producto.Id)) producto.Id = Guid.NewGuid().ToString();
+            
+            var clienteId = GetClienteId();
+            if (!string.IsNullOrEmpty(clienteId))
+            {
+                producto.ClienteId = clienteId;
+            }
+
             _context.Producto.Add(producto);
             _context.SaveChanges();
             return producto;
