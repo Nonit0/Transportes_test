@@ -8,6 +8,7 @@ import { ConductoresComponent } from '../conductores/conductores.component';
 import { ClientesComponent } from '../clientes/clientes.component';
 import { FabricasComponent } from '../fabricas/fabricas.component';
 import { PedidosComponent } from '../pedidos/pedidos.component';
+import { CargasComponent } from '../cargas/cargas.component';
 import { LoginComponent } from '../auth/login/login.component';
 import { RegistrarComponent } from '../auth/registrar/registrar.component';
 import { AuthGuard } from '../guards/auth.guard';
@@ -21,6 +22,7 @@ const routes: Routes = [
   { path: 'clientes', component: ClientesComponent, canActivate: [AuthGuard], data: { expectedRoles: ['Administrador', 'Operario'] } },
   { path: 'fabricas', component: FabricasComponent, canActivate: [AuthGuard], data: { expectedRoles: ['Administrador', 'Operario', 'Cliente'] } },
   { path: 'pedidos', component: PedidosComponent, canActivate: [AuthGuard], data: { expectedRoles: ['Administrador', 'Operario', 'Cliente'] } },
+  { path: 'cargas', component: CargasComponent, canActivate: [AuthGuard], data: { expectedRoles: ['Administrador', 'Operario'] } },
   { path: 'login', component: LoginComponent },
   { path: 'registrar', component: RegistrarComponent },
   { path: '**', redirectTo: '', pathMatch: 'full' }

@@ -1,0 +1,203 @@
+<div class="content-area">
+  <div class="header-area">
+    <h1>📦 Gestión de Cargas (Envíos)</h1>
+    <div class="action-buttons">
+      <button class="btn btn-primary" (click)="abrirGenerador()">
+        ➕ Generar Carga
+      </button>
+    </div>
+  </div>
+
+  <div class="clr-row">
+    <div class="clr-col-12">
+      <clr-datagrid (clrDgRefresh)="refresh($event)" [clrDgLoading]="cargando">
+        <clr-dg-column>Fecha Salida</clr-dg-column>
+        <clr-dg-column>Camión</clr-dg-column>
+        <clr-dg-column>Conductor</clr-dg-column>
+        <clr-dg-column>Origen</clr-dg-column>
+        <clr-dg-column>Destino</clr-dg-column>
+        <clr-dg-column>Pedidos Transportados</clr-dg-column>
+
+        <clr-dg-row *clrDgItems="let carga of cargas">
+          <clr-dg-action-overflow>
+            <button class="action-item" (click)="eliminarCarga(carga.id)">Eliminar</button>
+          </clr-dg-action-overflow>
+          <clr-dg-cell>{{carga.fechaSalida | date:'short'}}</clr-dg-cell>
+          <clr-dg-cell>
+             <clr-icon shape="truck"></clr-icon> {{carga.camion?.matricula}}
+          </clr-dg-cell>
+          <clr-dg-cell>{{carga.conductor?.nombre}} {{carga.conductor?.apellidos}}</clr-dg-cell>
+          <clr-dg-cell>{{carga.historicoOrigenNombre}}</clr-dg-cell>
+          <clr-dg-cell>{{carga.historicoDestinoNombre}}</clr-dg-cell>
+          <clr-dg-cell>{{carga.cargaPedidos?.$values?.length || carga.cargaPedidos?.length || 0}}</clr-dg-cell>
+        </clr-dg-row>
+
+        <clr-dg-footer>
+          <clr-dg-pagination #pagination [clrDgPageSize]="50" [clrDgTotalItems]="totalItems">
+            <clr-dg-page-size [clrPageSizeOptions]="[10, 20, 50, 100]">Cargas por página</clr-dg-page-size>
+            {{pagination.firstItem + 1}} - {{pagination.lastItem + 1}} de {{pagination.totalItems}} cargas
+          </clr-dg-pagination>
+        </clr-dg-footer>
+      </clr-datagrid>
+    </div>
+  </div>
+</div>
+
+<clr-modal [(clrModalOpen)]="creandoModal" [clrModalSize]="'xl'">
+  <h3 class="modal-title">📦 Configurar y Asignar Carga a un Camión</h3>
+  <div class="modal-body">
+    <form clrForm #form="ngForm">
+      <div class="clr-row">
+         
+         <div class="clr-col-lg-6 clr-col-12">
+            <h4>Configuración del Vehículo</h4>
+            
+            <clr-select-container>
+              <label>Camión Asignado</label>
+              <select clrSelect name="camionId" [(ngModel)]="formulario.camionId" (change)="seleccionarCamion()" required>
+                <option value="" disabled selected>Elige camión...</option>
+                <option *ngFor="let cam of camiones" [value]="cam.id">{{ cam.matricula }} (Max {{cam.capacidadPeso}}kg / {{cam.capacidadVolumen}}m³)</option>
+              </select>
+            </clr-select-container>
+            
+            <clr-select-container>
+              <label>Retén de Conductor</label>
+              <select clrSelect name="conductorId" [(ngModel)]="formulario.conductorId" required>
+                <option value="" disabled selected>Elige conductor...</option>
+                <option *ngFor="let cond of conductores" [value]="cond.id">{{ cond.nombre }} {{cond.apellidos}}</option>
+              </select>
+            </clr-select-container>
+
+            <h4 style="margin-top: 1.5rem">Hoja de Ruta</h4>
+            
+            <clr-select-container>
+              <label>Almacén Origen</label>
+              <select clrSelect name="origen" [(ngModel)]="formulario.origenAlmacenId" required>
+                <option value="" disabled selected>Elige origen...</option>
+                <option *ngFor="let alm of almacenes" [value]="alm.id">{{ alm.nombre }}</option>
+              </select>
+            </clr-select-container>
+
+            <div style="margin-top: 1rem">
+                <label style="font-weight: 500">¿Hacia dónde va esta carga?</label>
+                <div class="clr-row" style="margin-top: 0.5rem">
+                   <div class="clr-col-auto">
+                      <div class="clr-control-container">
+                        <div class="clr-radio-wrapper">
+                          <input type="radio" id="rd-cliente" clrRadio name="tipoDestino" required value="cliente" [(ngModel)]="formulario.tipoDestino" />
+                          <label for="rd-cliente">A un Cliente</label>
+                        </div>
+                      </div>
+                   </div>
+                   <div class="clr-col-auto">
+                      <div class="clr-control-container">
+                        <div class="clr-radio-wrapper">
+                          <input type="radio" id="rd-almacen" clrRadio name="tipoDestino" required value="almacen" [(ngModel)]="formulario.tipoDestino" />
+                          <label for="rd-almacen">A otro Almacén</label>
+                        </div>
+                      </div>
+                   </div>
+                </div>
+            </div>
+
+            <clr-select-container *ngIf="formulario.tipoDestino === 'cliente'">
+              <label>Cliente Destino</label>
+              <select clrSelect name="destinoCli" [(ngModel)]="formulario.destinoClienteId" [required]="formulario.tipoDestino === 'cliente'">
+                <option value="" disabled selected>Seleccionar Cliente...</option>
+                <option *ngFor="let cli of clientes" [value]="cli.id">{{ cli.nombre }}</option>
+              </select>
+            </clr-select-container>
+
+            <clr-select-container *ngIf="formulario.tipoDestino === 'almacen'">
+              <label>Almacén Destino</label>
+              <select clrSelect name="destinoAlm" [(ngModel)]="formulario.destinoAlmacenId" [required]="formulario.tipoDestino === 'almacen'">
+                <option value="" disabled selected>Seleccionar Almacén...</option>
+                <option *ngFor="let alm of almacenes" [value]="alm.id">{{ alm.nombre }}</option>
+              </select>
+            </clr-select-container>
+
+         </div>
+
+         <div class="clr-col-lg-6 clr-col-12" style="border-left: 1px solid #ccc; padding-left: 1rem;">
+            <h4>Cargar Pedidos Pendientes</h4>
+            
+            <div *ngIf="pedidos.length === 0" style="margin-bottom: 1rem;">
+               <span class="p5">No hay pedidos en estado "Pendiente" en el sistema.</span>
+            </div>
+
+            <div *ngIf="pedidos.length > 0" style="max-height: 250px; overflow-y: auto; border: 1px solid #ccc; padding: 0.5rem; margin-bottom: 1rem;">
+               <table class="table table-compact">
+                 <thead>
+                    <tr>
+                       <th>Cargar</th>
+                       <th>ID Pedido</th>
+                       <th>Peso Total</th>
+                       <th>Volumen</th>
+                    </tr>
+                 </thead>
+                 <tbody>
+                    <tr *ngFor="let p of pedidos" (click)="togglePedido(p)" style="cursor: pointer" [ngClass]="{'row-selected': p._seleccionado}">
+                       <td (click)="$event.stopPropagation()">
+                          <input type="checkbox" [(ngModel)]="p._seleccionado" [ngModelOptions]="{standalone: true}" (ngModelChange)="togglePedido(p, $event)" />
+                       </td>
+                       <td>{{ p.id.split('-')[0] }}...</td>
+                       <td>{{ p._pesoCalculado }} kg</td>
+                       <td>{{ p._volumenCalculado }} m³</td>
+                    </tr>
+                 </tbody>
+               </table>
+            </div>
+
+            <div *ngIf="camionSeleccionado" class="card">
+               <div class="card-block">
+                  <div class="card-title">📦 Analizador de Capacidad Ocupada</div>
+                  <div class="card-text">
+                     <span style="display:flex; justify-content: space-between">
+                         <span style="font-weight: 500">Peso Acumulado:</span>
+                         <span [ngClass]="{'text-danger font-weight-bold': pesoLlenado > camionSeleccionado.capacidadPeso}">
+                             {{pesoLlenado}} / {{camionSeleccionado.capacidadPeso}} kg
+                         </span>
+                     </span>
+                     <div class="progress" [ngClass]="{'danger': pesoLlenado > camionSeleccionado.capacidadPeso, 'success': pesoLlenado <= camionSeleccionado.capacidadPeso}">
+                         <progress [value]="pesoLlenado" [max]="camionSeleccionado.capacidadPeso"></progress>
+                     </div>
+
+                     <span style="display:flex; justify-content: space-between; margin-top:1rem">
+                         <span style="font-weight: 500">Volumen Acumulado:</span>
+                         <span [ngClass]="{'text-danger font-weight-bold': volumenLlenado > camionSeleccionado.capacidadVolumen}">
+                             {{volumenLlenado}} / {{camionSeleccionado.capacidadVolumen}} m³
+                         </span>
+                     </span>
+                     <div class="progress" [ngClass]="{'danger': volumenLlenado > camionSeleccionado.capacidadVolumen, 'success': volumenLlenado <= camionSeleccionado.capacidadVolumen}">
+                         <progress [value]="volumenLlenado" [max]="camionSeleccionado.capacidadVolumen"></progress>
+                     </div>
+
+                     <div *ngIf="superaLimites()" style="color: red; margin-top: 1rem; font-weight: bold; background: #ffe6e6; padding: 0.5rem; border-radius: 4px;">
+                         ⚠️ Has superado el límite del camión. Retira pedidos.
+                     </div>
+                     <div *ngIf="formulario.cargaPedidos.length === 0" style="color: #0072a3; margin-top: 1rem; font-weight: bold;">
+                         ℹ️ Selecciona al menos un pedido para habilitar la carga.
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <div *ngIf="!camionSeleccionado" class="alert alert-warning">
+               <div class="alert-items">
+                  <div class="alert-item static">
+                     <div class="alert-icon-wrapper">
+                        <cds-icon shape="exclamation-triangle"></cds-icon>
+                     </div>
+                     <span class="alert-text">Selecciona un Vehículo en el panel izquierdo para calcular si entran los pedidos.</span>
+                  </div>
+               </div>
+            </div>
+
+         </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="cerrarGenerador()">Cancelar</button>
+    <button type="button" class="btn btn-primary" (click)="guardarCarga()" [disabled]="form.invalid || superaLimites() || formulario.cargaPedidos.length === 0">Confirmar Carga</button>
+  </div>
+</clr-modal>

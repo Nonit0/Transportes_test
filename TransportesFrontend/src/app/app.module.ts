@@ -18,6 +18,7 @@ import { PedidosComponent } from './pedidos/pedidos.component';
 import { LoginComponent } from './auth/login/login.component';
 import { RegistrarComponent } from './auth/registrar/registrar.component';
 import { JwtInterceptor } from './services/jwt.interceptor';
+import { CargasComponent } from './cargas/cargas.component';
 
 
 @NgModule({
@@ -32,7 +33,8 @@ import { JwtInterceptor } from './services/jwt.interceptor';
     FabricasComponent,
     PedidosComponent,
     LoginComponent,
-    RegistrarComponent
+    RegistrarComponent,
+    CargasComponent
   ],
   imports: [
     BrowserModule,

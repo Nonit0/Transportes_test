@@ -75,6 +75,10 @@
         <cds-icon clrVerticalNavIcon shape="bundle"></cds-icon>
         Pedidos
       </a>
+      <a *ngIf="!isCliente()" clrVerticalNavLink routerLink="/cargas" routerLinkActive="active">
+        <cds-icon clrVerticalNavIcon shape="truck"></cds-icon>
+        Cargas
+      </a>
     </clr-vertical-nav>
   </div>
 </clr-main-container>
