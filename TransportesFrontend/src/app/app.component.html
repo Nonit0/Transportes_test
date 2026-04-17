@@ -63,7 +63,7 @@
         <cds-icon clrVerticalNavIcon shape="user"></cds-icon>
         Conductores
       </a>
-      <a clrVerticalNavLink routerLink="/clientes" routerLinkActive="active">
+      <a *ngIf="!isCliente()" clrVerticalNavLink routerLink="/clientes" routerLinkActive="active">
         <cds-icon clrVerticalNavIcon shape="users"></cds-icon>
         Clientes
       </a>
