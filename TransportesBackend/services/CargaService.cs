@@ -20,11 +20,13 @@ namespace TransportesBackend.Services
     {
         private readonly TransportesDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IPedidoService _pedidoService;
 
-        public CargaService(TransportesDbContext context, IHttpContextAccessor httpContextAccessor)
+        public CargaService(TransportesDbContext context, IHttpContextAccessor httpContextAccessor, IPedidoService pedidoService)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _pedidoService = pedidoService;
         }
 
         private string GetClienteId() => _httpContextAccessor.HttpContext?.User?.FindFirst("ClienteId")?.Value;
@@ -76,11 +78,15 @@ namespace TransportesBackend.Services
                 if (!conductorValido) throw new Exception("El conductor seleccionado no le pertenece.");
             }
 
+            // Normalizar cadenas vacías a null para cumplir el CHECK de MySQL
+            if (string.IsNullOrWhiteSpace(cargaInput.DestinoAlmacenId)) cargaInput.DestinoAlmacenId = null;
+            if (string.IsNullOrWhiteSpace(cargaInput.DestinoClienteId)) cargaInput.DestinoClienteId = null;
+
             // Validar restricción lógica "Arco Exclusivo" Destino
-            if (string.IsNullOrEmpty(cargaInput.DestinoAlmacenId) && string.IsNullOrEmpty(cargaInput.DestinoClienteId))
+            if (cargaInput.DestinoAlmacenId == null && cargaInput.DestinoClienteId == null)
                 throw new Exception("Debe especificar un destino (Almacén o Cliente).");
             
-            if (!string.IsNullOrEmpty(cargaInput.DestinoAlmacenId) && !string.IsNullOrEmpty(cargaInput.DestinoClienteId))
+            if (cargaInput.DestinoAlmacenId != null && cargaInput.DestinoClienteId != null)
                 throw new Exception("No puede seleccionar Almacén y Cliente a la vez como destino.");
 
             if (cargaInput.CargaPedidos == null || !cargaInput.CargaPedidos.Any())
@@ -106,13 +112,17 @@ namespace TransportesBackend.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                // Guardar los IDs de pedidos antes de manipular el grafo
+                var pedidoIds = cargaInput.CargaPedidos.Select(cp => cp.PedidoId).ToList();
+
                 decimal totalPeso = 0, totalVolumen = 0;
-                foreach (var cp in cargaInput.CargaPedidos)
+                foreach (var pedidoId in pedidoIds)
                 {
-                    var pedido = await _context.Pedido.Include(p => p.PedidoDetalles).ThenInclude(pd => pd.Producto)
-                        .FirstOrDefaultAsync(p => p.Id == cp.PedidoId);
+                    var pedido = await _context.Pedido
+                        .Include(p => p.PedidoDetalles).ThenInclude(pd => pd.Producto)
+                        .FirstOrDefaultAsync(p => p.Id == pedidoId);
                     
-                    if (pedido == null) throw new Exception($"El pedido {cp.PedidoId} no existe.");
+                    if (pedido == null) throw new Exception($"El pedido {pedidoId} no existe.");
 
                     foreach (var detalle in pedido.PedidoDetalles)
                     {
@@ -127,21 +137,32 @@ namespace TransportesBackend.Services
                 cargaInput.Id = Guid.NewGuid().ToString();
                 cargaInput.FechaSalida = cargaInput.FechaSalida == default ? DateTime.UtcNow : cargaInput.FechaSalida;
 
+                // ⚠️ Desconectar el grafo de CargaPedidos para evitar conflictos con la PK compuesta
+                cargaInput.CargaPedidos = new HashSet<CargaPedido>();
                 _context.Carga.Add(cargaInput);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(); // Paso 1: insertar la Carga
 
-                foreach (var cp in cargaInput.CargaPedidos)
+                // Paso 2: insertar CargaPedido + Entrega + cambiar estado
+                foreach (var pedidoId in pedidoIds)
                 {
+                    _context.CargaPedido.Add(new CargaPedido
+                    {
+                        CargaId = cargaInput.Id,
+                        PedidoId = pedidoId
+                    });
+
                     _context.Entrega.Add(new Entrega
                     {
                         Id = Guid.NewGuid().ToString(),
                         CargaId = cargaInput.Id,
-                        PedidoId = cp.PedidoId,
+                        PedidoId = pedidoId,
                         Estado = "En Camino"
                     });
+
+                    _pedidoService.MarcarEnEnvio(pedidoId);
                 }
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(); // Paso 2 confirmado
                 await transaction.CommitAsync();
 
                 return await _context.Carga

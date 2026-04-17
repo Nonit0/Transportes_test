@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { ClarityIcons, trashIcon, plusIcon, banIcon, inboxIcon } from '@cds/core/icon';
 
@@ -31,7 +32,7 @@ export class PedidosComponent implements OnInit {
     ]
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   ngOnInit(): void {
     this.cargarPedidos();
@@ -143,20 +144,37 @@ export class PedidosComponent implements OnInit {
   }
 
   // ==========================================
-  // ACCIONES DE LA TABLA (PUT / DELETE)
+  // CAMBIO DE ESTADO / ACCIONES
   // ==========================================
   cambiarEstado(id: string, nuevoEstado: string) {
-    // Para que el PUT funcione con un string simple en el body, a veces 
-    // hay que enviarlo como un objeto JSON o entre comillas dobles.
     this.http.put(`${this.apiUrl}/Pedidos/${id}/estado`, `"${nuevoEstado}"`, {
       headers: { 'Content-Type': 'application/json' }
     }).subscribe({
       next: () => {
-        // Actualizamos visualmente el estado sin recargar todo
         const pedido = this.pedidos.find(p => p.id === id);
         if (pedido) pedido.estado = nuevoEstado;
       },
       error: (err) => alert('Error al cambiar el estado')
+    });
+  }
+
+  // "En Proceso" → navegar a /cargas con el pedido pre-seleccionado
+  irACargas(pedido: any) {
+    this.router.navigate(['/cargas'], { state: { pedidoPreseleccionado: pedido } });
+  }
+
+  // "En Envío" → marcar Entregado y actualizar Entrega
+  entregarPedido(id: string) {
+    if (!confirm('¿Confirmas que este pedido ha sido entregado al destino final?')) return;
+    this.http.put(`${this.apiUrl}/Pedidos/${id}/entregar`, {}).subscribe({
+      next: () => {
+        const pedido = this.pedidos.find(p => p.id === id);
+        if (pedido) pedido.estado = 'Entregado';
+      },
+      error: (err) => {
+        const msg = err.error?.mensaje || 'Error al marcar como entregado';
+        alert('⚠️ ' + msg);
+      }
     });
   }
 

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { AuthService } from '../services/auth.service';
 
@@ -48,18 +49,25 @@ export class CargasComponent implements OnInit {
   };
 
   creandoModal = false;
+  pedidoPreseleccionado: any = null; // Viene de Pedidos vía router state
 
   // State calculations
   pesoLlenado = 0;
   volumenLlenado = 0;
   camionSeleccionado: any = null;
 
-  constructor(private http: HttpClient, private authService: AuthService) {
+  constructor(private http: HttpClient, private authService: AuthService, private router: Router) {
     this.isAdmin = this.authService.getRol() === 'Administrador' || this.authService.getRol() === 'Admin';
   }
 
   ngOnInit(): void {
-    // datagrid refresh will call cargarCargas automatically on init with state
+    // Comprobar si venimos de Pedidos con un pedido pre-seleccionado
+    const navState = this.router.getCurrentNavigation()?.extras?.state
+                  || history.state;
+    if (navState?.pedidoPreseleccionado) {
+      this.pedidoPreseleccionado = navState.pedidoPreseleccionado;
+      this.abrirGenerador();
+    }
   }
 
   refresh(state: any) {
@@ -122,8 +130,10 @@ export class CargasComponent implements OnInit {
         const data = res.data ?? res;
         const allPedidos = data.$values ? data.$values : data;
         
-        // Excluimos los pedidos que no tienen estado "Pendiente"
-        this.pedidos = allPedidos.filter((p: any) => p.estado === 'Pendiente').map((p: any) => {
+        // Mostramos pedidos Pendientes y En Proceso (los "En Envío" ya van en camino)
+        this.pedidos = allPedidos
+          .filter((p: any) => p.estado === 'Pendiente' || p.estado === 'En Proceso')
+          .map((p: any) => {
            let peso = 0;
            let volumen = 0;
            if (p.pedidoDetalles && p.pedidoDetalles.$values) {
@@ -139,9 +149,13 @@ export class CargasComponent implements OnInit {
            }
            p._pesoCalculado = peso;
            p._volumenCalculado = volumen;
-           p._seleccionado = false;
+           // Auto-seleccionar si viene pre-seleccionado desde Pedidos
+           p._seleccionado = this.pedidoPreseleccionado ? p.id === this.pedidoPreseleccionado.id : false;
            return p;
         });
+        
+        // Recalcular por si hay pedido pre-seleccionado ya tildado
+        this.recalcular();
     });
   }
 

@@ -88,13 +88,27 @@ namespace TransportesBackend.Controllers
         public IActionResult CambiarEstado(string id, [FromBody] string nuevoEstado)
         {
             var actualizado = _pedidoService.CambiarEstado(id, nuevoEstado);
-
             if (!actualizado)
-            {
                 return NotFound(new { mensaje = "El pedido no existe." });
-            }
-
             return NoContent();
+        }
+
+        // ============================== //
+        // PUT: api/Pedidos/{id}/entregar //
+        // ============================== //
+        [HttpPut("{id}/entregar")]
+        public IActionResult EntregarPedido(string id)
+        {
+            try
+            {
+                var ok = _pedidoService.EntregarPedido(id);
+                if (!ok) return NotFound(new { mensaje = "El pedido no existe." });
+                return NoContent();
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
     }
 }

@@ -14,6 +14,8 @@ namespace TransportesBackend.Services
         Pedido Crear(Pedido pedido);
         bool Eliminar(string id);
         bool CambiarEstado(string id, string nuevoEstado);
+        bool EntregarPedido(string id);
+        bool MarcarEnEnvio(string pedidoId);
         bool ExisteCliente(string clienteId);
         bool ExisteProducto(string productoId);
     }
@@ -130,12 +132,49 @@ namespace TransportesBackend.Services
         public bool CambiarEstado(string id, string nuevoEstado)
         {
             var pedido = _context.Pedido.Find(id);
-
             if (pedido == null) return false;
-
             pedido.Estado = nuevoEstado;
             _context.SaveChanges();
+            return true;
+        }
 
+        // ========================= //
+        // Entregar (Pedido Final)   //
+        // ========================= //
+        public bool EntregarPedido(string id)
+        {
+            var pedido = _context.Pedido.Find(id);
+            if (pedido == null) return false;
+
+            // Solo se puede entregar si está "En Envío"
+            if (pedido.Estado != "En Envío")
+                throw new InvalidOperationException("El pedido debe estar en estado 'En Envío' para poder entregarlo.");
+
+            // Buscar el registro de Entrega activo asociado
+            var entrega = _context.Entrega.FirstOrDefault(e => e.PedidoId == id && e.FechaEntrega == null);
+            if (entrega != null)
+            {
+                entrega.FechaEntrega = DateTime.UtcNow;
+                entrega.Estado = "Entregado";
+                _context.Entrega.Update(entrega);
+            }
+
+            pedido.Estado = "Entregado";
+            _context.Pedido.Update(pedido);
+            _context.SaveChanges();
+            return true;
+        }
+
+        // ========================= //
+        // Marcar En Envío          //
+        // ========================= //
+        public bool MarcarEnEnvio(string pedidoId)
+        {
+            var pedido = _context.Pedido.Find(pedidoId);
+            if (pedido == null) return false;
+            pedido.Estado = "En Envío";
+            _context.Pedido.Update(pedido);
+            _context.SaveChanges();
             return true;
         }
 

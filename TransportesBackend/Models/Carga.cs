@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -38,7 +38,6 @@ namespace TransportesBackend.Models
         [Column("origen_almacen_id")]
         [StringLength(36)]
         public string OrigenAlmacenId { get; set; }
-        [Required]
         [Column("historico_origen_nombre")]
         [StringLength(150)]
         public string HistoricoOrigenNombre { get; set; }
@@ -48,7 +47,6 @@ namespace TransportesBackend.Models
         [Column("destino_cliente_id")]
         [StringLength(36)]
         public string DestinoClienteId { get; set; }
-        [Required]
         [Column("historico_destino_nombre")]
         [StringLength(150)]
         public string HistoricoDestinoNombre { get; set; }

@@ -46,7 +46,8 @@
           [ngClass]="{
             'label-success': pedido.estado === 'Entregado',
             'label-warning': pedido.estado === 'Pendiente',
-            'label-info': pedido.estado === 'En Tránsito',
+            'label-info': pedido.estado === 'En Proceso',
+            'label-purple': pedido.estado === 'En Envío'
           }"
         >
           {{ pedido.estado }}
@@ -54,14 +55,31 @@
       </clr-dg-cell>
 
       <clr-dg-cell>
-        <ng-container *ngIf="!pedido.deletedAt">
+        <ng-container *ngIf="!pedido.deletedAt && pedido.estado !== 'Entregado'">
+          <!-- Pendiente: solo mostrar estado, no se puede actuar directamente -->
+          <span *ngIf="pedido.estado === 'Pendiente'" class="p6" style="color: #888">Esperando asignación de carga</span>
+
+          <!-- En Proceso: redirigir a Cargas para asignar envío -->
           <button
-            class="btn btn-sm btn-link"
-            (click)="cambiarEstado(pedido.id, 'Entregado')"
+            *ngIf="pedido.estado === 'En Proceso'"
+            class="btn btn-sm btn-outline"
+            title="Asignar a una Carga para ponerlo En Envío"
+            (click)="irACargas(pedido)"
           >
-            Entregar
+            🚚 Asignar Envío
           </button>
+
+          <!-- En Envío: confirmar entrega final -->
           <button
+            *ngIf="pedido.estado === 'En Envío'"
+            class="btn btn-sm btn-success"
+            (click)="entregarPedido(pedido.id)"
+          >
+            ✅ Marcar Entregado
+          </button>
+
+          <button
+            *ngIf="pedido.estado !== 'En Envío'"
             class="btn btn-sm btn-link"
             (click)="eliminarPedido(pedido.id)"
           >
@@ -71,6 +89,9 @@
 
         <span *ngIf="pedido.deletedAt" class="texto-bloqueado">
           <cds-icon shape="ban"></cds-icon> Eliminado
+        </span>
+        <span *ngIf="!pedido.deletedAt && pedido.estado === 'Entregado'" class="p6" style="color: #4caf50">
+          ✔ Entregado
         </span>
       </clr-dg-cell>
     </clr-dg-row>
